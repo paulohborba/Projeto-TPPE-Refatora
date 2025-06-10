@@ -2,27 +2,28 @@ version: '3.8'
 
 services:
   mysql:
-    image: mysql:8.0
-    container_name: ttpe-mysql
+    image: mysql:8.0.36
+    container_name: projetotppe_db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
-      MYSQL_DATABASE: estacionamento
+      MYSQL_ROOT_PASSWORD: 12345678
+      MYSQL_USER: tppe_user
+      MYSQL_PASSWORD: 123456
+      MYSQL_DATABASE: estacionamento_db
     ports:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uuser", "-ppassword"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u$$MYSQL_USER", "-p$$MYSQL_PASSWORD"]
       interval: 5s
       timeout: 10s
       retries: 5
+      start_period: 20s
 
   app:
     build: .
-    container_name: ttpe-app
+    container_name: projetotppe_app
     depends_on:
       mysql:
         condition: service_healthy
@@ -31,9 +32,9 @@ services:
     volumes:
       - ./target:/app/target 
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/estacionamento
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/estacionamento_db
+      SPRING_DATASOURCE_USERNAME: tppe_user
+      SPRING_DATASOURCE_PASSWORD: 123456
       
 volumes:
-  mysql_data:
+  db_data:
