@@ -1,14 +1,9 @@
-FROM maven:3.9.4-eclipse-temurin-17 AS build
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
+COPY pom.xml .
+RUN mvn dependency:go-offline
 
-FROM eclipse-temurin:17-jdk
-WORKDIR /app
+COPY src ./src
+COPY google_checks.xml .
 
-COPY --from=build /app/target/*.jar app.jar
-COPY --from=build /app/pom.xml .
-
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
-
-CMD ["sh", "-c", "mvn test -f pom.xml -Dmaven.test.failure.ignore=true && java -jar app.jar"]
+RUN mvn clean install -DskipTests
