@@ -21,10 +21,8 @@ services:
       retries: 5
       start_period: 20s
 
-  backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+  app:
+    build: .
     container_name: projetotppe_app
     depends_on:
       mysql:
