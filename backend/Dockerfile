@@ -4,6 +4,6 @@ COPY pom.xml .
 RUN mvn dependency:go-offline
 
 COPY src ./src
-COPY google_checks.xml .
+# COPY google_checks.xml .
 
 RUN mvn clean install -DskipTests
