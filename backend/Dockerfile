@@ -1,9 +1,22 @@
-FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
+FROM eclipse-temurin:21-jdk-jammy AS builder
+
 WORKDIR /app
-COPY pom.xml .
-RUN mvn dependency:go-offline
 
-COPY src ./src
-# COPY google_checks.xml .
+COPY gradlew .
+COPY gradle gradle/
+COPY build.gradle .
+COPY settings.gradle .
 
-RUN mvn clean install -DskipTests
+COPY config/checkstyle/google_checks.xml config/checkstyle/  # Exemplo: se seu arquivo está em config/checkstyle/
+
+COPY src src/
+
+RUN ./gradlew clean build bootJar --no-daemon
+
+FROM eclipse-temurin:21-jre-jammy
+
+WORKDIR /app
+
+COPY --from=builder /app/build/libs/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
