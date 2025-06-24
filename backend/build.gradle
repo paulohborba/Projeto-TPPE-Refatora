@@ -1,0 +1,87 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.3'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'checkstyle'
+}
+
+group = 'com.estacionamento'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+  	implementation 'org.springframework.boot:spring-boot-starter-actuator' 	
+	runtimeOnly 'com.mysql:mysql-connector-j'
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params' 
+	
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+checkstyle {
+	toolVersion = '10.12.7'
+	configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+	showViolations = true
+	ignoreFailures = true
+	maxErrors = 0
+	maxWarnings = 0
+}
+  
+	checkstyleMain {
+ 	source = sourceSets.main.allJava
+	}
+
+	checkstyleTest {
+	source = sourceSets.test.allJava
+	}
+
+	check.dependsOn checkstyleMain
+
+task createEnvFile(type: Copy) {
+	doFirst {
+		File envFile = file("${rootDir}/.env")
+		if (!envFile.exists()) {
+			envFile.text = """
+# Variáveis de ambiente para o banco de dados MySQL
+DB_ROOT_PASSWORD=12345678
+DB_USER=tppe_user
+DB_PASSWORD=123456
+
+# Exemplo de porta para a aplicação Spring Boot (opcional, pode ser configurada no application.properties/yml)
+# SERVER_PORT=8080
+"""
+			println "Arquivo .env criado na raiz do projeto. Lembre-se de preencher as senhas!"
+		} else {
+			println "Arquivo .env já existe na raiz do projeto."
+		}
+	}
+}
