@@ -29,7 +29,12 @@ public class Contratante {
     @Column(name = "telefone", length = 20)
     private String telefone;
 
-    @ManyToMany(mappedBy = "contratantes")
+    @ManyToMany
+    @JoinTable(
+        name = "contratante_estacionamento",
+        joinColumns = @JoinColumn(name = "contratante_id"),
+        inverseJoinColumns = @JoinColumn(name = "estacionamento_id")
+    )
     private List<Estacionamento> estacionamentos = new ArrayList<>();
 
     @ManyToMany
@@ -40,7 +45,6 @@ public class Contratante {
     )
     private List<Evento> eventos = new ArrayList<>();
 
-    // Métodos utilitários para gerenciar coleções (boa prática)
     public void addEstacionamento(Estacionamento estacionamento) {
         this.estacionamentos.add(estacionamento);
         if (estacionamento.getContratantes() == null) {
