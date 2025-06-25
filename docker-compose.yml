@@ -23,8 +23,8 @@ services:
 
   app:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: estacionamento_app
     ports:
       - "8080:8080"
@@ -32,7 +32,7 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/db_estacionamento?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/db_estacionamento?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=UTC
       SPRING_DATASOURCE_USERNAME: ${DB_USER:-tppe_user}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-123456}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
