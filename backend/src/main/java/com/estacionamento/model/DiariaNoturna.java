@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 
@@ -14,7 +16,6 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class DiariaNoturna {
     @Id
-    @Column(name = "id")
     private Long id;
 
     @Column(name = "hora_inicio", nullable = false)
@@ -24,10 +25,10 @@ public class DiariaNoturna {
     private LocalTime horaFim;
 
     @Column(name = "adicional_noturno", precision = 10, scale = 2)
-    private Double adicionalNoturno;
+    private BigDecimal adicionalNoturno;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @MapsId // Indica que o ID desta entidade é mapeado do ID da entidade associada (Diaria)
-    @JoinColumn(name = "id") // A coluna "id" é a FK para Diaria
+    @MapsId
+    @JoinColumn(name = "id")
     private Diaria diaria;
 }
