@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -35,7 +37,7 @@ public class Acesso {
     private LocalDateTime saida;
 
     @Column(name = "valor_cobrado", precision = 10, scale = 2)
-    private Double valorCobrado;
+    private BigDecimal valorCobrado;
 
     @Column(name = "tipo_acesso", nullable = false, length = 50)
     private String tipoAcesso;
