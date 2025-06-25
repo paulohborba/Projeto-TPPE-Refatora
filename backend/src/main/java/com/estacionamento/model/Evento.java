@@ -34,7 +34,6 @@ public class Evento {
     @ManyToMany(mappedBy = "eventos")
     private List<Contratante> contratantes = new ArrayList<>();
 
-    // Métodos utilitários para gerenciar coleções (boa prática)
     public void addContratante(Contratante contratante) {
         this.contratantes.add(contratante);
         if (contratante.getEventos() == null) {
