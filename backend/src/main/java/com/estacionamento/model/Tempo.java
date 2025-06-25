@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
+import java.math.BigDecimal;
 import java.time.LocalTime;
 
 @Entity
@@ -20,8 +22,8 @@ public class Tempo {
     private LocalTime duracao;
 
     @Column(name = "valor_fracao", nullable = false, precision = 10, scale = 2)
-    private Double valorFracao;
+    private BigDecimal valorFracao;
 
     @Column(name = "desconto", precision = 5, scale = 2)
-    private Double desconto;
+    private BigDecimal desconto;
 }
