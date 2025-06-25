@@ -1,5 +1,7 @@
 package com.estacionamento.model;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +18,7 @@ public class Mensalista {
     private Long id;
 
     @Column(name = "valor", nullable = false, precision = 10, scale = 2)
-    private Double valor;
+    private BigDecimal valor;
 
     @Column(name = "periodo_meses")
     private Integer periodoMeses;
