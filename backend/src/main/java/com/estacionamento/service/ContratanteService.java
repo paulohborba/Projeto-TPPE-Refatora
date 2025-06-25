@@ -12,9 +12,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ContratanteService {
@@ -33,52 +34,54 @@ public class ContratanteService {
 
     @Transactional
     public Contratante criarContratante(Contratante contratante) {
-        if (!StringUtils.hasText(contratante.getNome())) {
-            throw new DescricaoEmBrancoException("O nome do contratante não pode estar em branco.");
-        }
-        if (!StringUtils.hasText(contratante.getCpfCnpj())) {
-            throw new DescricaoEmBrancoException("O CPF/CNPJ do contratante não pode estar em branco.");
-        }
-        if (!StringUtils.hasText(contratante.getEmail())) {
-            throw new DescricaoEmBrancoException("O e-mail do contratante não pode estar em branco.");
+        validarContratante(contratante);
+
+        // Valida unicidade de CPF/CNPJ
+        Optional<Contratante> contratanteExistenteCpfCnpj = contratanteRepository.findByCpfCnpj(contratante.getCpfCnpj());
+        if (contratanteExistenteCpfCnpj.isPresent()) {
+            throw new IllegalArgumentException("Já existe um contratante com o CPF/CNPJ '" + contratante.getCpfCnpj() + "'.");
         }
 
-        if (contratanteRepository.findByCpfCnpj(contratante.getCpfCnpj()).isPresent()) {
-            throw new IllegalArgumentException("Já existe um contratante com o CPF/CNPJ: " + contratante.getCpfCnpj());
-        }
-        if (contratanteRepository.findByEmail(contratante.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Já existe um contratante com o e-mail: " + contratante.getEmail());
+        // Valida unicidade de E-mail
+        Optional<Contratante> contratanteExistenteEmail = contratanteRepository.findByEmail(contratante.getEmail());
+        if (contratanteExistenteEmail.isPresent()) {
+            throw new IllegalArgumentException("Já existe um contratante com o e-mail '" + contratante.getEmail() + "'.");
         }
 
-        List<Estacionamento> managedEstacionamentos = new ArrayList<>();
+        Set<Estacionamento> managedEstacionamentos = new HashSet<>();
         if (contratante.getEstacionamentos() != null && !contratante.getEstacionamentos().isEmpty()) {
-            for (Estacionamento est : contratante.getEstacionamentos()) {
-                if (est.getId() == null) {
-                    throw new IllegalArgumentException("Estacionamento com ID nulo associado ao contratante. Apenas estacionamentos existentes podem ser associados.");
+            for (Estacionamento e : contratante.getEstacionamentos()) {
+                if (e.getId() != null) {
+                    Estacionamento estacionamento = estacionamentoRepository.findById(e.getId())
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + e.getId() + " não encontrado."));
+                    managedEstacionamentos.add(estacionamento);
+                } else {
+                    throw new DescricaoEmBrancoException("ID do estacionamento não pode ser nulo ao associar a um contratante existente.");
                 }
-                Estacionamento estacionamentoExistente = estacionamentoRepository.findById(est.getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + est.getId() + " não encontrado para associar ao contratante."));
-                managedEstacionamentos.add(estacionamentoExistente);
-                estacionamentoExistente.addContratante(contratante);
             }
-            contratante.setEstacionamentos(managedEstacionamentos);
         }
+        contratante.setEstacionamentos(managedEstacionamentos);
 
-        List<Evento> managedEventos = new ArrayList<>();
+        Set<Evento> managedEventos = new HashSet<>();
         if (contratante.getEventos() != null && !contratante.getEventos().isEmpty()) {
-            for (Evento evt : contratante.getEventos()) {
-                if (evt.getId() == null) {
-                    throw new IllegalArgumentException("Evento com ID nulo associado ao contratante. Apenas eventos existentes podem ser associados.");
+            for (Evento ev : contratante.getEventos()) {
+                if (ev.getId() != null) {
+                    Evento evento = eventoRepository.findById(ev.getId())
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Evento com ID " + ev.getId() + " não encontrado."));
+                    managedEventos.add(evento);
+                } else {
+                    throw new DescricaoEmBrancoException("ID do evento não pode ser nulo ao associar a um contratante existente.");
                 }
-                Evento eventoExistente = eventoRepository.findById(evt.getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Evento com ID " + evt.getId() + " não encontrado para associar ao contratante."));
-                managedEventos.add(eventoExistente);
-                eventoExistente.addContratante(contratante);
             }
-            contratante.setEventos(managedEventos);
         }
+        contratante.setEventos(managedEventos);
 
-        return contratanteRepository.save(contratante);
+        Contratante savedContratante = contratanteRepository.save(contratante);
+
+        savedContratante.getEstacionamentos().forEach(estacionamento -> estacionamento.getContratantes().add(savedContratante));
+        savedContratante.getEventos().forEach(evento -> evento.getContratantes().add(savedContratante));
+
+        return savedContratante;
     }
 
     public Contratante buscarContratantePorId(Long id) {
@@ -95,23 +98,18 @@ public class ContratanteService {
         Contratante contratanteExistente = contratanteRepository.findById(id)
                 .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + id + " não encontrado para atualização."));
 
-        if (!StringUtils.hasText(contratanteAtualizado.getNome())) {
-            throw new DescricaoEmBrancoException("O nome do contratante não pode estar em branco.");
-        }
-        if (!StringUtils.hasText(contratanteAtualizado.getCpfCnpj())) {
-            throw new DescricaoEmBrancoException("O CPF/CNPJ do contratante não pode estar em branco.");
-        }
-        if (!StringUtils.hasText(contratanteAtualizado.getEmail())) {
-            throw new DescricaoEmBrancoException("O e-mail do contratante não pode estar em branco.");
-        }
+        validarContratante(contratanteAtualizado);
 
+        // Valida unicidade de CPF/CNPJ (excluindo o próprio contratante)
         Optional<Contratante> contratanteComMesmoCpfCnpj = contratanteRepository.findByCpfCnpj(contratanteAtualizado.getCpfCnpj());
         if (contratanteComMesmoCpfCnpj.isPresent() && !contratanteComMesmoCpfCnpj.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Já existe outro contratante com o CPF/CNPJ: " + contratanteAtualizado.getCpfCnpj());
+            throw new IllegalArgumentException("Já existe outro contratante com o CPF/CNPJ '" + contratanteAtualizado.getCpfCnpj() + "'.");
         }
+
+        // Valida unicidade de E-mail (excluindo o próprio contratante)
         Optional<Contratante> contratanteComMesmoEmail = contratanteRepository.findByEmail(contratanteAtualizado.getEmail());
         if (contratanteComMesmoEmail.isPresent() && !contratanteComMesmoEmail.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Já existe outro contratante com o e-mail: " + contratanteAtualizado.getEmail());
+            throw new IllegalArgumentException("Já existe outro contratante com o e-mail '" + contratanteAtualizado.getEmail() + "'.");
         }
 
         contratanteExistente.setNome(contratanteAtualizado.getNome());
@@ -119,62 +117,90 @@ public class ContratanteService {
         contratanteExistente.setEmail(contratanteAtualizado.getEmail());
         contratanteExistente.setTelefone(contratanteAtualizado.getTelefone());
 
-        if (contratanteExistente.getEstacionamentos() != null) {
-            for (Estacionamento oldEst : new ArrayList<>(contratanteExistente.getEstacionamentos())) {
-                oldEst.removeContratante(contratanteExistente);
-            }
-        }
-        contratanteExistente.getEstacionamentos().clear();
-
-        if (contratanteAtualizado.getEstacionamentos() != null && !contratanteAtualizado.getEstacionamentos().isEmpty()) {
-            for (Estacionamento newEst : contratanteAtualizado.getEstacionamentos()) {
-                if (newEst.getId() == null) {
-                    throw new IllegalArgumentException("Estacionamento com ID nulo em atualização de contratante.");
+        // --- Atualiza associações de estacionamentos ---
+        Set<Estacionamento> newManagedEstacionamentos = new HashSet<>();
+        if (contratanteAtualizado.getEstacionamentos() != null) {
+            for (Estacionamento e : contratanteAtualizado.getEstacionamentos()) {
+                if (e.getId() != null) {
+                    Estacionamento estacionamento = estacionamentoRepository.findById(e.getId())
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + e.getId() + " não encontrado para associação."));
+                    newManagedEstacionamentos.add(estacionamento);
+                } else {
+                    throw new DescricaoEmBrancoException("ID do estacionamento não pode ser nulo ao associar a um contratante existente.");
                 }
-                Estacionamento estacionamentoExistente = estacionamentoRepository.findById(newEst.getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + newEst.getId() + " não encontrado para associar."));
-                estacionamentoExistente.addContratante(contratanteExistente);
             }
         }
 
-        if (contratanteExistente.getEventos() != null) {
-            for (Evento oldEvt : new ArrayList<>(contratanteExistente.getEventos())) {
-                oldEvt.removeContratante(contratanteExistente);
-            }
-        }
-        contratanteExistente.getEventos().clear();
+        // Remove associações antigas que não estão mais na lista atualizada
+        Set<Estacionamento> estacionamentosParaRemover = new HashSet<>(contratanteExistente.getEstacionamentos());
+        estacionamentosParaRemover.removeAll(newManagedEstacionamentos);
+        estacionamentosParaRemover.forEach(estacionamento -> estacionamento.removeContratante(contratanteExistente)); // CORREÇÃO AQUI
 
-        if (contratanteAtualizado.getEventos() != null && !contratanteAtualizado.getEventos().isEmpty()) {
-            for (Evento newEvt : contratanteAtualizado.getEventos()) {
-                if (newEvt.getId() == null) {
-                    throw new IllegalArgumentException("Evento com ID nulo em atualização de contratante.");
+        // Adiciona novas associações ou mantém as existentes
+        newManagedEstacionamentos.forEach(estacionamento -> {
+            if (!contratanteExistente.getEstacionamentos().contains(estacionamento)) {
+                estacionamento.addContratante(contratanteExistente); // CORREÇÃO AQUI
+            }
+        });
+        contratanteExistente.setEstacionamentos(newManagedEstacionamentos); // Sincroniza a coleção do contratante
+
+
+        // --- Atualiza associações de eventos ---
+        Set<Evento> newManagedEventos = new HashSet<>();
+        if (contratanteAtualizado.getEventos() != null) {
+            for (Evento ev : contratanteAtualizado.getEventos()) {
+                if (ev.getId() != null) {
+                    Evento evento = eventoRepository.findById(ev.getId())
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Evento com ID " + ev.getId() + " não encontrado para associação."));
+                    newManagedEventos.add(evento);
+                } else {
+                    throw new DescricaoEmBrancoException("ID do evento não pode ser nulo ao associar a um contratante existente.");
                 }
-                Evento eventoExistente = eventoRepository.findById(newEvt.getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Evento com ID " + newEvt.getId() + " não encontrado para associar."));
-                contratanteExistente.addEvento(eventoExistente);
             }
         }
+
+        // Remove associações antigas que não estão mais na lista atualizada
+        Set<Evento> eventosParaRemover = new HashSet<>(contratanteExistente.getEventos());
+        eventosParaRemover.removeAll(newManagedEventos);
+        eventosParaRemover.forEach(evento -> evento.removeContratante(contratanteExistente)); // CORREÇÃO AQUI
+
+        // Adiciona novas associações ou mantém as existentes
+        newManagedEventos.forEach(evento -> {
+            if (!contratanteExistente.getEventos().contains(evento)) {
+                evento.addContratante(contratanteExistente); // CORREÇÃO AQUI
+            }
+        });
+        contratanteExistente.setEventos(newManagedEventos); // Sincroniza a coleção do contratante
+
 
         return contratanteRepository.save(contratanteExistente);
     }
 
     @Transactional
     public void deletarContratante(Long id) {
-        Contratante contratanteParaDeletar = contratanteRepository.findById(id)
+        Contratante contratante = contratanteRepository.findById(id)
                 .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + id + " não encontrado para exclusão."));
 
-        if (contratanteParaDeletar.getEstacionamentos() != null) {
-            for (Estacionamento estacionamento : new ArrayList<>(contratanteParaDeletar.getEstacionamentos())) {
-                estacionamento.removeContratante(contratanteParaDeletar);
-            }
-        }
+        // Desassociar de estacionamentos
+        Set<Estacionamento> estacionamentosCopia = new HashSet<>(contratante.getEstacionamentos());
+        estacionamentosCopia.forEach(estacionamento -> estacionamento.removeContratante(contratante)); // CORREÇÃO AQUI
 
-        if (contratanteParaDeletar.getEventos() != null) {
-            for (Evento evento : new ArrayList<>(contratanteParaDeletar.getEventos())) {
-                evento.removeContratante(contratanteParaDeletar);
-            }
-        }
+        // Desassociar de eventos
+        Set<Evento> eventosCopia = new HashSet<>(contratante.getEventos());
+        eventosCopia.forEach(evento -> evento.removeContratante(contratante)); // CORREÇÃO AQUI
 
-        contratanteRepository.delete(contratanteParaDeletar);
+        contratanteRepository.delete(contratante);
+    }
+
+    private void validarContratante(Contratante contratante) {
+        if (!StringUtils.hasText(contratante.getNome())) {
+            throw new DescricaoEmBrancoException("O nome do contratante não pode estar em branco.");
+        }
+        if (!StringUtils.hasText(contratante.getCpfCnpj())) {
+            throw new DescricaoEmBrancoException("O CPF/CNPJ do contratante não pode estar em branco.");
+        }
+        if (!StringUtils.hasText(contratante.getEmail())) {
+            throw new DescricaoEmBrancoException("O e-mail do contratante não pode estar em branco.");
+        }
     }
 }

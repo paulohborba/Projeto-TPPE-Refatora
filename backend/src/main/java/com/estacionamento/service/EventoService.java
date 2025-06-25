@@ -7,10 +7,12 @@ import com.estacionamento.model.Evento;
 import com.estacionamento.repository.ContratanteRepository;
 import com.estacionamento.repository.EventoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class EventoService {
@@ -23,6 +25,7 @@ public class EventoService {
         this.contratanteRepository = contratanteRepository;
     }
 
+    @Transactional
     public Evento criarEvento(Evento evento) {
         if (!StringUtils.hasText(evento.getNomeEvento())) {
             throw new DescricaoEmBrancoException("O nome do evento não pode estar em branco.");
@@ -33,28 +36,28 @@ public class EventoService {
         if (evento.getDataFim() == null) {
             throw new DescricaoEmBrancoException("A data de fim do evento não pode ser nula.");
         }
-
         if (evento.getDataFim().isBefore(evento.getDataInicio())) {
             throw new IllegalArgumentException("A data de fim do evento não pode ser anterior à data de início.");
         }
 
-        List<Contratante> managedContratantes = new ArrayList<>();
+        Set<Contratante> managedContratantes = new HashSet<>();
         if (evento.getContratantes() != null && !evento.getContratantes().isEmpty()) {
             for (Contratante c : evento.getContratantes()) {
-                if (c.getId() == null) {
-                    throw new IllegalArgumentException("Contratante com ID nulo associado ao evento. Apenas contratantes existentes podem ser associados.");
+                if (c.getId() != null) {
+                    Contratante contratante = contratanteRepository.findById(c.getId())
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + c.getId() + " não encontrado."));
+                    managedContratantes.add(contratante);
+                } else {
+                    throw new DescricaoEmBrancoException("ID do contratante não pode ser nulo ao associar a um evento existente.");
                 }
-                Contratante contratanteExistente = contratanteRepository.findById(c.getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + c.getId() + " não encontrado para associar ao evento."));
-                managedContratantes.add(contratanteExistente);
-            }
-            evento.setContratantes(managedContratantes);
-            for (Contratante mc : managedContratantes) {
-                mc.addEvento(evento);
             }
         }
+        evento.setContratantes(managedContratantes);
 
-        return eventoRepository.save(evento);
+        Evento savedEvento = eventoRepository.save(evento);
+        savedEvento.getContratantes().forEach(contratante -> contratante.getEventos().add(savedEvento));
+
+        return savedEvento;
     }
 
     public Evento buscarEventoPorId(Long id) {
@@ -66,60 +69,66 @@ public class EventoService {
         return eventoRepository.findAll();
     }
 
+    @Transactional
     public Evento atualizarEvento(Long id, Evento eventoAtualizado) {
         Evento eventoExistente = eventoRepository.findById(id)
                 .orElseThrow(() -> new ObjetoNaoEncontradoException("Evento com ID " + id + " não encontrado para atualização."));
 
         if (!StringUtils.hasText(eventoAtualizado.getNomeEvento())) {
-            throw new DescricaoEmBrancoException("O nome do evento não pode estar em branco.");
+            throw new DescricaoEmBrancoException("O nome do evento não pode estar em branco na atualização.");
         }
         if (eventoAtualizado.getDataInicio() == null) {
-            throw new DescricaoEmBrancoException("A data de início do evento não pode ser nula.");
+            throw new DescricaoEmBrancoException("A data de início do evento não pode ser nula na atualização.");
         }
         if (eventoAtualizado.getDataFim() == null) {
-            throw new DescricaoEmBrancoException("A data de fim do evento não pode ser nula.");
+            throw new DescricaoEmBrancoException("A data de fim do evento não pode ser nula na atualização.");
         }
         if (eventoAtualizado.getDataFim().isBefore(eventoAtualizado.getDataInicio())) {
-            throw new IllegalArgumentException("A data de fim do evento não pode ser anterior à data de início.");
+            throw new IllegalArgumentException("A data de fim do evento não pode ser anterior à data de início na atualização.");
         }
 
         eventoExistente.setNomeEvento(eventoAtualizado.getNomeEvento());
+        eventoExistente.setDescricao(eventoAtualizado.getDescricao());
         eventoExistente.setDataInicio(eventoAtualizado.getDataInicio());
         eventoExistente.setDataFim(eventoAtualizado.getDataFim());
-        eventoExistente.setDescricao(eventoAtualizado.getDescricao());
 
+        Set<Contratante> newManagedContratantes = new HashSet<>();
         if (eventoAtualizado.getContratantes() != null) {
-            if (eventoExistente.getContratantes() != null) {
-                for (Contratante oldContratante : eventoExistente.getContratantes()) {
-                    oldContratante.removeEvento(eventoExistente);
-                }
-            }
-
-            List<Contratante> newManagedContratantes = new ArrayList<>();
             for (Contratante c : eventoAtualizado.getContratantes()) {
-                if (c.getId() == null) {
-                    throw new IllegalArgumentException("Contratante com ID nulo em atualização de evento.");
+                if (c.getId() != null) {
+                    Contratante contratante = contratanteRepository.findById(c.getId())
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + c.getId() + " não encontrado para associação."));
+                    newManagedContratantes.add(contratante);
+                } else {
+                    throw new DescricaoEmBrancoException("ID do contratante não pode ser nulo ao associar a um evento existente.");
                 }
-                Contratante contratanteExistente = contratanteRepository.findById(c.getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + c.getId() + " não encontrado para associar ao evento."));
-                newManagedContratantes.add(contratanteExistente);
-                contratanteExistente.addEvento(eventoExistente);
             }
-            eventoExistente.setContratantes(newManagedContratantes);
         }
+
+        // Remove associações antigas que não estão mais na lista atualizada
+        Set<Contratante> contratantesParaRemover = new HashSet<>(eventoExistente.getContratantes());
+        contratantesParaRemover.removeAll(newManagedContratantes);
+        contratantesParaRemover.forEach(contratante -> contratante.removeEvento(eventoExistente)); // CORREÇÃO AQUI
+
+        // Adiciona novas associações ou mantém as existentes
+        newManagedContratantes.forEach(contratante -> {
+            if (!eventoExistente.getContratantes().contains(contratante)) {
+                contratante.addEvento(eventoExistente); // CORREÇÃO AQUI
+            }
+        });
+        eventoExistente.setContratantes(newManagedContratantes); // Sincroniza a coleção do evento
 
         return eventoRepository.save(eventoExistente);
     }
 
+    @Transactional
     public void deletarEvento(Long id) {
-        Evento eventoParaDeletar = eventoRepository.findById(id)
+        Evento evento = eventoRepository.findById(id)
                 .orElseThrow(() -> new ObjetoNaoEncontradoException("Evento com ID " + id + " não encontrado para exclusão."));
 
-        if (eventoParaDeletar.getContratantes() != null) {
-            for (Contratante contratante : eventoParaDeletar.getContratantes()) {
-                contratante.removeEvento(eventoParaDeletar);
-            }
-        }
-        eventoRepository.delete(eventoParaDeletar);
+        Set<Contratante> contratantesCopia = new HashSet<>(evento.getContratantes());
+        contratantesCopia.forEach(contratante -> contratante.removeEvento(evento)); // CORREÇÃO AQUI
+
+        eventoRepository.delete(evento);
     }
 }

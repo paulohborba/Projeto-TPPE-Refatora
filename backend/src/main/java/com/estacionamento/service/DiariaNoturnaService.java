@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -39,16 +40,13 @@ public class DiariaNoturnaService {
         if (diariaNoturnaAtualizada.getHoraFim() == null) {
             throw new DescricaoEmBrancoException("A hora de fim da diária noturna não pode ser nula.");
         }
-        if (diariaNoturnaAtualizada.getHoraFim().isBefore(diariaNoturnaAtualizada.getHoraInicio())) {
-            throw new IllegalArgumentException("A hora de fim da diária noturna não pode ser anterior à hora de início.");
-        }
         if (diariaNoturnaAtualizada.getAdicionalNoturno() != null && diariaNoturnaAtualizada.getAdicionalNoturno().compareTo(BigDecimal.ZERO) < 0) {
-             throw new IllegalArgumentException("O adicional noturno não pode ser negativo.");
+            throw new IllegalArgumentException("O adicional noturno não pode ser negativo.");
         }
 
         diariaNoturnaExistente.setHoraInicio(diariaNoturnaAtualizada.getHoraInicio());
         diariaNoturnaExistente.setHoraFim(diariaNoturnaAtualizada.getHoraFim());
-        diariaNoturnaExistente.setAdicionalNoturno(diariaNoturnaAtualizada.getAdicionalNoturno());
+        diariaNoturnaExistente.setAdicionalNoturno(diariaNoturnaAtualizada.getAdicionalNoturno().setScale(2, RoundingMode.HALF_UP));
 
         return diariaNoturnaRepository.save(diariaNoturnaExistente);
     }

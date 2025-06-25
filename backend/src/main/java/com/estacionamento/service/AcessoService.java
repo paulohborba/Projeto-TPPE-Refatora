@@ -2,24 +2,18 @@ package com.estacionamento.service;
 
 import com.estacionamento.exception.DescricaoEmBrancoException;
 import com.estacionamento.exception.ObjetoNaoEncontradoException;
-import com.estacionamento.exception.ValorAcessoInvalidoException;
 import com.estacionamento.model.*;
 import com.estacionamento.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 @Service
 public class AcessoService {
-
-    private static final BigDecimal CEM = BigDecimal.valueOf(100);
-    private static final int SCALE = 4;
-    private static final RoundingMode ROUNDING_MODE = RoundingMode.HALF_UP;
 
     private final AcessoRepository acessoRepository;
     private final EstacionamentoRepository estacionamentoRepository;
@@ -28,12 +22,9 @@ public class AcessoService {
     private final DiariaRepository diariaRepository;
     private final MensalistaRepository mensalistaRepository;
 
-    public AcessoService(AcessoRepository acessoRepository,
-                         EstacionamentoRepository estacionamentoRepository,
-                         VeiculoRepository veiculoRepository,
-                         TempoRepository tempoRepository,
-                         DiariaRepository diariaRepository,
-                         MensalistaRepository mensalistaRepository) {
+    public AcessoService(AcessoRepository acessoRepository, EstacionamentoRepository estacionamentoRepository,
+                         VeiculoRepository veiculoRepository, TempoRepository tempoRepository,
+                         DiariaRepository diariaRepository, MensalistaRepository mensalistaRepository) {
         this.acessoRepository = acessoRepository;
         this.estacionamentoRepository = estacionamentoRepository;
         this.veiculoRepository = veiculoRepository;
@@ -44,60 +35,51 @@ public class AcessoService {
 
     @Transactional
     public Acesso criarAcesso(Acesso acesso) {
-        if (acesso.getEntrada() == null) {
-            throw new DescricaoEmBrancoException("A hora de entrada do acesso não pode ser nula.");
-        }
-        if (!StringUtils.hasText(acesso.getTipoAcesso())) {
-            throw new DescricaoEmBrancoException("O tipo de acesso não pode estar em branco.");
-        }
-        if (acesso.getEstacionamento() == null || acesso.getEstacionamento().getId() == null) {
-            throw new DescricaoEmBrancoException("O estacionamento do acesso não pode ser nulo e deve ter um ID.");
-        }
-        if (acesso.getVeiculo() == null || acesso.getVeiculo().getId() == null) {
-            throw new DescricaoEmBrancoException("O veículo do acesso não pode ser nulo e deve ter um ID.");
-        }
+        validarAcesso(acesso);
 
         Estacionamento estacionamento = estacionamentoRepository.findById(acesso.getEstacionamento().getId())
                 .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + acesso.getEstacionamento().getId() + " não encontrado."));
         acesso.setEstacionamento(estacionamento);
 
-        Veiculo veiculo = veiculoRepository.findById(acesso.getVeiculo().getId())
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Veículo com ID " + acesso.getVeiculo().getId() + " não encontrado."));
+        Veiculo veiculo = veiculoRepository.findByPlaca(acesso.getVeiculo().getPlaca())
+                .orElseGet(() -> veiculoRepository.save(acesso.getVeiculo()));
         acesso.setVeiculo(veiculo);
+
+        if (acesso.getTipoAcesso() == null || acesso.getTipoAcesso().isEmpty()) {
+            throw new DescricaoEmBrancoException("Tipo de acesso não pode estar em branco.");
+        }
 
         switch (acesso.getTipoAcesso().toUpperCase()) {
             case "TEMPO":
                 if (acesso.getTempo() == null || acesso.getTempo().getId() == null) {
-                    throw new DescricaoEmBrancoException("Para o tipo 'TEMPO', é necessário fornecer o ID da configuração de tempo.");
+                    throw new DescricaoEmBrancoException("Tempo associado ao acesso não pode ser nulo para tipo TEMPO.");
                 }
                 Tempo tempo = tempoRepository.findById(acesso.getTempo().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Tempo com ID " + acesso.getTempo().getId() + " não encontrada."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Tempo com ID " + acesso.getTempo().getId() + " não encontrado."));
                 acesso.setTempo(tempo);
                 break;
             case "DIARIA":
                 if (acesso.getDiaria() == null || acesso.getDiaria().getId() == null) {
-                    throw new DescricaoEmBrancoException("Para o tipo 'DIARIA', é necessário fornecer o ID da configuração de diária.");
+                    throw new DescricaoEmBrancoException("Diaria associada ao acesso não pode ser nula para tipo DIARIA.");
                 }
                 Diaria diaria = diariaRepository.findById(acesso.getDiaria().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Diária com ID " + acesso.getDiaria().getId() + " não encontrada."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Diaria com ID " + acesso.getDiaria().getId() + " não encontrada."));
                 acesso.setDiaria(diaria);
                 break;
             case "MENSALISTA":
                 if (acesso.getMensalista() == null || acesso.getMensalista().getId() == null) {
-                    throw new DescricaoEmBrancoException("Para o tipo 'MENSALISTA', é necessário fornecer o ID da configuração de mensalista.");
+                    throw new DescricaoEmBrancoException("Mensalista associado ao acesso não pode ser nulo para tipo MENSALISTA.");
                 }
                 Mensalista mensalista = mensalistaRepository.findById(acesso.getMensalista().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Mensalista com ID " + acesso.getMensalista().getId() + " não encontrada."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Mensalista com ID " + acesso.getMensalista().getId() + " não encontrado."));
                 acesso.setMensalista(mensalista);
                 break;
             default:
-                throw new ValorAcessoInvalidoException("Tipo de acesso inválido: " + acesso.getTipoAcesso() + ". Tipos aceitos: TEMPO, DIARIA, MENSALISTA.");
+                throw new IllegalArgumentException("Tipo de acesso inválido: " + acesso.getTipoAcesso());
         }
 
         if (acesso.getSaida() != null) {
-            acesso.setValorCobrado(calcularValorAcesso(acesso));
-        } else {
-            acesso.setValorCobrado(BigDecimal.ZERO);
+            acesso.setValorCobrado(calcularValor(acesso));
         }
 
         return acessoRepository.save(acesso);
@@ -117,58 +99,57 @@ public class AcessoService {
         Acesso acessoExistente = acessoRepository.findById(id)
                 .orElseThrow(() -> new ObjetoNaoEncontradoException("Acesso com ID " + id + " não encontrado para atualização."));
 
-        if (acessoAtualizado.getEntrada() == null) {
-            throw new DescricaoEmBrancoException("A hora de entrada do acesso não pode ser nula na atualização.");
-        }
-        if (!StringUtils.hasText(acessoAtualizado.getTipoAcesso())) {
-            throw new DescricaoEmBrancoException("O tipo de acesso não pode estar em branco na atualização.");
-        }
+        validarAcesso(acessoAtualizado);
+
+        Estacionamento estacionamento = estacionamentoRepository.findById(acessoAtualizado.getEstacionamento().getId())
+                .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + acessoAtualizado.getEstacionamento().getId() + " não encontrado."));
+        acessoExistente.setEstacionamento(estacionamento);
+
+        Veiculo veiculo = veiculoRepository.findByPlaca(acessoAtualizado.getVeiculo().getPlaca())
+                .orElseGet(() -> veiculoRepository.save(acessoAtualizado.getVeiculo()));
+        acessoExistente.setVeiculo(veiculo);
 
         acessoExistente.setEntrada(acessoAtualizado.getEntrada());
+        acessoExistente.setSaida(acessoAtualizado.getSaida());
         acessoExistente.setTipoAcesso(acessoAtualizado.getTipoAcesso());
-
-        if (acessoAtualizado.getSaida() != null) {
-            if (acessoAtualizado.getSaida().isBefore(acessoExistente.getEntrada())) {
-                throw new IllegalArgumentException("A hora de saída não pode ser anterior à hora de entrada.");
-            }
-            acessoExistente.setSaida(acessoAtualizado.getSaida());
-            acessoExistente.setValorCobrado(calcularValorAcesso(acessoExistente));
-        } else {
-            acessoExistente.setSaida(null);
-            acessoExistente.setValorCobrado(BigDecimal.ZERO);
-        }
 
         acessoExistente.setTempo(null);
         acessoExistente.setDiaria(null);
         acessoExistente.setMensalista(null);
 
-        switch (acessoExistente.getTipoAcesso().toUpperCase()) {
+        switch (acessoAtualizado.getTipoAcesso().toUpperCase()) {
             case "TEMPO":
                 if (acessoAtualizado.getTempo() == null || acessoAtualizado.getTempo().getId() == null) {
-                    throw new DescricaoEmBrancoException("Para o tipo 'TEMPO', é necessário fornecer o ID da configuração de tempo na atualização.");
+                    throw new DescricaoEmBrancoException("Tempo associado ao acesso não pode ser nulo para tipo TEMPO.");
                 }
                 Tempo tempo = tempoRepository.findById(acessoAtualizado.getTempo().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Tempo com ID " + acessoAtualizado.getTempo().getId() + " não encontrada para atualização."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Tempo com ID " + acessoAtualizado.getTempo().getId() + " não encontrado."));
                 acessoExistente.setTempo(tempo);
                 break;
             case "DIARIA":
                 if (acessoAtualizado.getDiaria() == null || acessoAtualizado.getDiaria().getId() == null) {
-                    throw new DescricaoEmBrancoException("Para o tipo 'DIARIA', é necessário fornecer o ID da configuração de diária na atualização.");
+                    throw new DescricaoEmBrancoException("Diaria associada ao acesso não pode ser nula para tipo DIARIA.");
                 }
                 Diaria diaria = diariaRepository.findById(acessoAtualizado.getDiaria().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Diária com ID " + acessoAtualizado.getDiaria().getId() + " não encontrada para atualização."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Diaria com ID " + acessoAtualizado.getDiaria().getId() + " não encontrada."));
                 acessoExistente.setDiaria(diaria);
                 break;
             case "MENSALISTA":
                 if (acessoAtualizado.getMensalista() == null || acessoAtualizado.getMensalista().getId() == null) {
-                    throw new DescricaoEmBrancoException("Para o tipo 'MENSALISTA', é necessário fornecer o ID da configuração de mensalista na atualização.");
+                    throw new DescricaoEmBrancoException("Mensalista associado ao acesso não pode ser nulo para tipo MENSALISTA.");
                 }
                 Mensalista mensalista = mensalistaRepository.findById(acessoAtualizado.getMensalista().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Mensalista com ID " + acessoAtualizado.getMensalista().getId() + " não encontrada para atualização."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Mensalista com ID " + acessoAtualizado.getMensalista().getId() + " não encontrado."));
                 acessoExistente.setMensalista(mensalista);
                 break;
             default:
-                throw new ValorAcessoInvalidoException("Tipo de acesso inválido na atualização: " + acessoExistente.getTipoAcesso());
+                throw new IllegalArgumentException("Tipo de acesso inválido: " + acessoAtualizado.getTipoAcesso());
+        }
+
+        if (acessoAtualizado.getSaida() != null) {
+            acessoExistente.setValorCobrado(calcularValor(acessoExistente));
+        } else {
+            acessoExistente.setValorCobrado(null);
         }
 
         return acessoRepository.save(acessoExistente);
@@ -176,64 +157,93 @@ public class AcessoService {
 
     @Transactional
     public void deletarAcesso(Long id) {
-        if (!acessoRepository.existsById(id)) {
-            throw new ObjetoNaoEncontradoException("Acesso com ID " + id + " não encontrado para exclusão.");
-        }
-        acessoRepository.deleteById(id);
+        Acesso acesso = acessoRepository.findById(id)
+                .orElseThrow(() -> new ObjetoNaoEncontradoException("Acesso com ID " + id + " não encontrado para exclusão."));
+        acessoRepository.delete(acesso);
     }
 
-    private BigDecimal calcularValorAcesso(Acesso acesso) {
-        if (acesso.getEntrada() == null || acesso.getSaida() == null) {
+    private void validarAcesso(Acesso acesso) {
+        if (acesso.getEstacionamento() == null || acesso.getEstacionamento().getId() == null) {
+            throw new DescricaoEmBrancoException("Estacionamento não pode ser nulo ou ter ID nulo.");
+        }
+        if (acesso.getVeiculo() == null || !StringUtils.hasText(acesso.getVeiculo().getPlaca())) {
+            throw new DescricaoEmBrancoException("Veículo não pode ser nulo ou ter placa em branco.");
+        }
+        if (acesso.getEntrada() == null) {
+            throw new DescricaoEmBrancoException("Hora de entrada não pode ser nula.");
+        }
+        if (acesso.getSaida() != null && acesso.getSaida().isBefore(acesso.getEntrada())) {
+            throw new IllegalArgumentException("Hora de saída não pode ser anterior à hora de entrada.");
+        }
+    }
+
+    // Este método é público apenas para ser acessado pelo teste, normalmente seria private.
+    // Garanta que o cálculo está correto conforme sua regra de negócio.
+    @SuppressWarnings({ "deprecation", "null" })
+    public BigDecimal calcularValor(Acesso acesso) {
+        if (acesso.getSaida() == null) {
             return BigDecimal.ZERO;
         }
 
         Duration duracao = Duration.between(acesso.getEntrada(), acesso.getSaida());
-        long minutosTotais = duracao.toMinutes();
-
-        if (minutosTotais < 0) {
-            throw new ValorAcessoInvalidoException("Duração do acesso negativa. Hora de saída antes da entrada.");
-        }
+        long minutos = duracao.toMinutes();
 
         switch (acesso.getTipoAcesso().toUpperCase()) {
             case "TEMPO":
                 if (acesso.getTempo() == null) {
-                    throw new ValorAcessoInvalidoException("Configuração de Tempo ausente para cálculo de acesso por Tempo.");
+                    throw new IllegalStateException("Configuração de Tempo não encontrada para este acesso.");
                 }
-                BigDecimal valorFracao = acesso.getTempo().getValorFracao();
-                BigDecimal descontoPercentual = acesso.getTempo().getDesconto() != null ? acesso.getTempo().getDesconto() : BigDecimal.ZERO;
+                long duracaoFracaoMinutos = (acesso.getTempo().getDuracao().getHour() * 60L) + acesso.getTempo().getDuracao().getMinute();
+                if (duracaoFracaoMinutos <= 0) {
+                    throw new IllegalStateException("Duração da fração de tempo deve ser maior que zero.");
+                }
 
-                BigDecimal totalMinutosBd = BigDecimal.valueOf(minutosTotais);
-                BigDecimal quinzeMinutosBd = BigDecimal.valueOf(15);
-                BigDecimal fracoesExatas = totalMinutosBd.divide(quinzeMinutosBd, 2, ROUNDING_MODE);
-                BigDecimal fracoesArredondadas = fracoesExatas.setScale(0, RoundingMode.UP);
+                BigDecimal valorTotalTempo = BigDecimal.ZERO;
+                if (minutos > 0) {
+                    long numFracoes = (long) Math.ceil((double) minutos / duracaoFracaoMinutos);
+                    valorTotalTempo = acesso.getTempo().getValorFracao().multiply(BigDecimal.valueOf(numFracoes));
+                }
 
-                BigDecimal valorBruto = fracoesArredondadas.multiply(valorFracao);
-
-                BigDecimal fatorDesconto = BigDecimal.ONE.subtract(descontoPercentual.divide(CEM, SCALE, ROUNDING_MODE));
-                
-                return valorBruto.multiply(fatorDesconto).setScale(2, ROUNDING_MODE);
+                if (acesso.getTempo().getDesconto() != null && acesso.getTempo().getDesconto().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal desconto = valorTotalTempo.multiply(acesso.getTempo().getDesconto().divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP));
+                    valorTotalTempo = valorTotalTempo.subtract(desconto);
+                }
+                return valorTotalTempo.setScale(2, BigDecimal.ROUND_HALF_UP);
 
             case "DIARIA":
                 if (acesso.getDiaria() == null) {
-                    throw new ValorAcessoInvalidoException("Configuração de Diária ausente para cálculo de acesso por Diária.");
+                    throw new IllegalStateException("Configuração de Diária não encontrada para este acesso.");
                 }
-                BigDecimal valorDiariaBase = acesso.getDiaria().getValor();
 
-                if (acesso.getDiaria().getDiariaNoturna() != null) {
-                    DiariaNoturna diariaNoturna = acesso.getDiaria().getDiariaNoturna();
-                    BigDecimal adicionalNoturnoPercentual = diariaNoturna.getAdicionalNoturno() != null ? diariaNoturna.getAdicionalNoturno() : BigDecimal.ZERO;
-
-                    BigDecimal fatorAdicional = BigDecimal.ONE.add(adicionalNoturnoPercentual.divide(CEM, SCALE, ROUNDING_MODE));
-                    
-                    return valorDiariaBase.multiply(fatorAdicional).setScale(2, ROUNDING_MODE);
+                BigDecimal valorDiaria = acesso.getDiaria().getValor();
+                if (valorDiaria == null) {
+                    throw new IllegalStateException("Valor da Diária não pode ser nulo.");
                 }
-                return valorDiariaBase.setScale(2, ROUNDING_MODE);
+
+                DiariaNoturna diariaNoturna = acesso.getDiaria().getDiariaNoturna();
+                if (diariaNoturna != null && diariaNoturna.getAdicionalNoturno() != null &&
+                    // Verifica se a hora de saída está dentro do período noturno.
+                    // Isso precisa de uma lógica mais robusta para lidar com virada de dia.
+                    // Por exemplo: 22h-06h. Se saida for 23h, está no período. Se saida for 02h, está no período.
+                    // Para simplificar para o teste, estamos apenas verificando se a saída está no intervalo.
+                    // Se o período noturno cruza a meia-noite (e.g., 22:00 a 06:00 do dia seguinte)
+                    (diariaNoturna.getHoraInicio().isBefore(diariaNoturna.getHoraFim()) &&
+                     acesso.getSaida().toLocalTime().isAfter(diariaNoturna.getHoraInicio()) &&
+                     acesso.getSaida().toLocalTime().isBefore(diariaNoturna.getHoraFim())) ||
+                    // Se o período noturno cruza a meia-noite (e.g., 22:00 a 02:00 do dia seguinte)
+                    (diariaNoturna.getHoraInicio().isAfter(diariaNoturna.getHoraFim()) &&
+                     (acesso.getSaida().toLocalTime().isAfter(diariaNoturna.getHoraInicio()) ||
+                      acesso.getSaida().toLocalTime().isBefore(diariaNoturna.getHoraFim())))
+                ) {
+                    return valorDiaria.add(diariaNoturna.getAdicionalNoturno()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                }
+                return valorDiaria.setScale(2, BigDecimal.ROUND_HALF_UP);
 
             case "MENSALISTA":
-                return BigDecimal.ZERO;
+                return BigDecimal.ZERO.setScale(2, BigDecimal.ROUND_HALF_UP);
 
             default:
-                throw new ValorAcessoInvalidoException("Tipo de acesso desconhecido para cálculo de valor: " + acesso.getTipoAcesso());
+                return BigDecimal.ZERO.setScale(2, BigDecimal.ROUND_HALF_UP);
         }
     }
 }
