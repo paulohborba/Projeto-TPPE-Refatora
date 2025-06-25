@@ -27,13 +27,12 @@ public class Estacionamento {
     @Column(name = "capacidade", nullable = false)
     private Integer capacidade;
 
-    @ManyToMany(mappedBy = "estacionamentos") // mappedBy indica que Contratante é o dono da relação
+    @ManyToMany(mappedBy = "estacionamentos")
     private List<Contratante> contratantes = new ArrayList<>();
 
     @OneToMany(mappedBy = "estacionamento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Acesso> acessos = new ArrayList<>();
 
-    // Métodos utilitários para gerenciar coleções (boa prática)
     public void addContratante(Contratante contratante) {
         this.contratantes.add(contratante);
         if (contratante.getEstacionamentos() == null) {
