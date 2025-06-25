@@ -93,7 +93,7 @@ CREATE TABLE Estacionamento_Contratante (
 );
 
 CREATE TABLE Contratante_Evento (
-    contratante_id INT NOT NULL
+    contratante_id INT NOT NULL,
     evento_id INT NOT NULL,
     PRIMARY KEY (contratante_id, evento_id),
     CONSTRAINT fk_ce_contratante
