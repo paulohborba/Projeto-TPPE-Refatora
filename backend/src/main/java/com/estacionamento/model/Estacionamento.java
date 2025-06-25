@@ -4,21 +4,24 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.util.List;
-import java.util.ArrayList;
+import lombok.EqualsAndHashCode;
+
+import java.time.LocalTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "Estacionamento")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = "contratantes")
 public class Estacionamento {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nome", nullable = false, length = 100)
+    @Column(name = "nome", nullable = false, unique = true, length = 100)
     private String nome;
 
     @Column(name = "endereco", nullable = false, length = 255)
@@ -27,32 +30,27 @@ public class Estacionamento {
     @Column(name = "capacidade", nullable = false)
     private Integer capacidade;
 
-    @ManyToMany(mappedBy = "estacionamentos")
-    private List<Contratante> contratantes = new ArrayList<>();
+    @Column(name = "hora_abertura", nullable = false)
+    private LocalTime horaAbertura;
 
-    @OneToMany(mappedBy = "estacionamento", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Acesso> acessos = new ArrayList<>();
+    @Column(name = "hora_fechamento", nullable = false)
+    private LocalTime horaFechamento;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "estacionamento_contratante",
+            joinColumns = @JoinColumn(name = "estacionamento_id"),
+            inverseJoinColumns = @JoinColumn(name = "contratante_id")
+    )
+    private Set<Contratante> contratantes = new HashSet<>();
 
     public void addContratante(Contratante contratante) {
         this.contratantes.add(contratante);
-        if (contratante.getEstacionamentos() == null) {
-            contratante.setEstacionamentos(new ArrayList<>());
-        }
         contratante.getEstacionamentos().add(this);
     }
 
     public void removeContratante(Contratante contratante) {
         this.contratantes.remove(contratante);
         contratante.getEstacionamentos().remove(this);
-    }
-
-    public void addAcesso(Acesso acesso) {
-        this.acessos.add(acesso);
-        acesso.setEstacionamento(this);
-    }
-
-    public void removeAcesso(Acesso acesso) {
-        this.acessos.remove(acesso);
-        acesso.setEstacionamento(null);
     }
 }

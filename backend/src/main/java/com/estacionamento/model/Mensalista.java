@@ -6,12 +6,14 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "Mensalista")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode 
 public class Mensalista {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

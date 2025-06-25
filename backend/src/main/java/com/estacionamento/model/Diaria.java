@@ -6,12 +6,14 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode; 
 
 @Entity
 @Table(name = "Diaria")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = "diariaNoturna") 
 public class Diaria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,5 +40,8 @@ public class Diaria {
             diariaNoturna.setDiaria(this);
         }
         this.diariaNoturna = diariaNoturna;
+    }
+
+    public Diaria(long l, BigDecimal bigDecimal, String string, String string2) {
     }
 }

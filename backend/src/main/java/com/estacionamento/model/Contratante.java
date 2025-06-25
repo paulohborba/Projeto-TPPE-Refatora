@@ -4,14 +4,17 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import java.util.List;
-import java.util.ArrayList;
+import lombok.EqualsAndHashCode;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "Contratante")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"estacionamentos", "eventos"}) 
 public class Contratante {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,36 +23,23 @@ public class Contratante {
     @Column(name = "nome", nullable = false, length = 100)
     private String nome;
 
-    @Column(name = "cpf_cnpj", unique = true, nullable = false, length = 20)
+    @Column(name = "cpf_cnpj", nullable = false, unique = true, length = 20)
     private String cpfCnpj;
 
-    @Column(name = "email", unique = true, nullable = false, length = 100)
+    @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(name = "telefone", length = 20)
     private String telefone;
 
-    @ManyToMany
-    @JoinTable(
-        name = "contratante_estacionamento",
-        joinColumns = @JoinColumn(name = "contratante_id"),
-        inverseJoinColumns = @JoinColumn(name = "estacionamento_id")
-    )
-    private List<Estacionamento> estacionamentos = new ArrayList<>();
+    @ManyToMany(mappedBy = "contratantes", fetch = FetchType.LAZY)
+    private Set<Estacionamento> estacionamentos = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-        name = "Contratante_Evento",
-        joinColumns = @JoinColumn(name = "contratante_id"),
-        inverseJoinColumns = @JoinColumn(name = "evento_id")
-    )
-    private List<Evento> eventos = new ArrayList<>();
+    @ManyToMany(mappedBy = "contratantes", fetch = FetchType.LAZY)
+    private Set<Evento> eventos = new HashSet<>();
 
     public void addEstacionamento(Estacionamento estacionamento) {
         this.estacionamentos.add(estacionamento);
-        if (estacionamento.getContratantes() == null) {
-            estacionamento.setContratantes(new ArrayList<>());
-        }
         estacionamento.getContratantes().add(this);
     }
 
@@ -60,9 +50,6 @@ public class Contratante {
 
     public void addEvento(Evento evento) {
         this.eventos.add(evento);
-        if (evento.getContratantes() == null) {
-            evento.setContratantes(new ArrayList<>());
-        }
         evento.getContratantes().add(this);
     }
 
