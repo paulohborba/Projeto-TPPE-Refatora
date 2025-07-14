@@ -296,7 +296,9 @@ public class AcessoService {
                          (saida.toLocalTime().isAfter(diariaNoturna.getHoraInicio()) ||
                           saida.toLocalTime().isBefore(diariaNoturna.getHoraFim())))
                     ) {
-                        return valorDiaria.add(diariaNoturna.getAdicionalNoturno()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        return valorDiaria.add(diariaNoturna.getAdicionalNoturno()).setScale(
+                            2, BigDecimal.ROUND_HALF_UP
+                        );
                     }
                 }
                 return valorDiaria.setScale(2, BigDecimal.ROUND_HALF_UP);
