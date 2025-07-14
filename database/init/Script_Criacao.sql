@@ -1,12 +1,12 @@
 CREATE TABLE Estacionamento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     endereco VARCHAR(255) NOT NULL,
     capacidade INT NOT NULL
 );
 
 CREATE TABLE Contratante (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     cpf_cnpj VARCHAR(20) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
@@ -14,7 +14,7 @@ CREATE TABLE Contratante (
 );
 
 CREATE TABLE Veiculo (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     placa VARCHAR(10) UNIQUE NOT NULL,
     marca VARCHAR(50),
     modelo VARCHAR(50),
@@ -22,29 +22,31 @@ CREATE TABLE Veiculo (
 );
 
 CREATE TABLE Evento (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     nome_evento VARCHAR(100) NOT NULL,
-    data_inicio DATETIME NOT NULL,
-    data_fim DATETIME NOT NULL,
+    data_inicio DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+    data_fim DATE NOT NULL,
+    hora_fim TIME NOT NULL,
     descricao TEXT
 );
 
 CREATE TABLE Tempo (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     duracao TIME,
     valor_fracao DECIMAL(10,2) NOT NULL,
     desconto DECIMAL(5,2)
 );
 
 CREATE TABLE Diaria (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     valor DECIMAL(10,2) NOT NULL,
     tipo VARCHAR(50),
     descricao VARCHAR(255)
 );
 
 CREATE TABLE Diaria_Noturna (
-    id INT PRIMARY KEY,
+    id INT   PRIMARY KEY,
     hora_inicio TIME NOT NULL,
     hora_fim TIME NOT NULL,
     adicional_noturno DECIMAL(10,2),
@@ -53,19 +55,21 @@ CREATE TABLE Diaria_Noturna (
 );
 
 CREATE TABLE Mensalista (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     valor DECIMAL(10,2) NOT NULL,
     periodo_meses INT,
     descricao VARCHAR(255)
 );
 
 CREATE TABLE Acesso (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT  PRIMARY KEY,
     estacionamento_id INT NOT NULL,
     veiculo_id INT NOT NULL,
     tempo_id INT,
-    entrada DATETIME NOT NULL,
-    saida DATETIME,
+    data_inicio DATE NOT NULL,
+    hora_inicio TIME NOT NULL<
+    saida DATE,
+    hora_fim TIME,
     valor_cobrado DECIMAL(10,2),
     tipo_acesso VARCHAR(50) NOT NULL,
     diaria_id INT,
