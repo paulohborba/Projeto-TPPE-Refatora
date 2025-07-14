@@ -1,0 +1,38 @@
+
+:root {
+    /* Cores */
+    --primary-color: #007bff; /* Azul vibrante */
+    --secondary-color: #6c757d; /* Cinza médio */
+    --success-color: #28a745; /* Verde */
+    --danger-color: #dc3545; /* Vermelho */
+    --warning-color: #ffc107; /* Amarelo */
+    --info-color: #17a2b8; /* Azul claro */
+    --light-color: #f8f9fa; /* Cinza muito claro */
+    --dark-color: #343a40; /* Cinza escuro */
+    --white-color: #ffffff;
+    --black-color: #000000;
+
+    /* Cores de Texto */
+    --text-color-dark: #333;
+    --text-color-light: #fefefe;
+
+    /* Espaçamento */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    /* Bordas e Sombras */
+    --border-radius: 5px;
+    --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+    /* Fontes */
+    --font-family-sans: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-lg: 18px;
+
+    /* Tamanhos do Header/Layout */
+    --header-height: 60px;
+}

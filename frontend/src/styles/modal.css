@@ -1,0 +1,80 @@
+@import './variables.css';
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7); /* Fundo escuro semi-transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000; /* Garante que o modal esteja acima de outros elementos */
+}
+
+.modal-content {
+    background-color: var(--white-color);
+    padding: var(--spacing-lg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 500px; /* Largura máxima do modal */
+    position: relative;
+    animation: fadeIn 0.3s ease-out; /* Animação simples de entrada */
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    color: var(--primary-color);
+}
+
+.modal-close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--secondary-color);
+    transition: color 0.2s ease;
+}
+
+.modal-close-button:hover {
+    color: var(--danger-color);
+}
+
+.modal-body {
+    margin-bottom: var(--spacing-md);
+    line-height: 1.6;
+}
+
+.modal-body p {
+    margin-top: 0;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end; /* Alinha botões à direita */
+    gap: var(--spacing-sm); /* Espaço entre os botões */
+}
+
+/* Animação */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -1,0 +1,98 @@
+@import './variables.css'; /* Importa as variáveis */
+
+/* Estilos globais do corpo da página */
+body {
+    margin: 0;
+    font-family: var(--font-family-sans);
+    background-color: var(--light-color);
+    color: var(--text-color-dark);
+    line-height: 1.6;
+}
+
+/* Layout principal */
+.main-layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ocupa a altura total da viewport */
+}
+
+/* Cabeçalho */
+.header {
+    background-color: var(--dark-color);
+    color: var(--white-color);
+    padding: var(--spacing-sm) var(--spacing-md);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    justify-content: center; /* Centraliza o conteúdo do cabeçalho */
+    align-items: center;
+    height: var(--header-height);
+    width: 100%;
+    box-sizing: border-box; /* Garante que padding e borda não aumentem o tamanho total */
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px; /* Largura máxima para o conteúdo do cabeçalho */
+    width: 100%;
+}
+
+.app-title {
+    color: var(--white-color);
+    text-decoration: none;
+    font-size: var(--font-size-lg);
+    font-weight: bold;
+}
+
+.main-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.main-nav li {
+    margin-left: var(--spacing-md);
+}
+
+.main-nav a {
+    color: var(--white-color);
+    text-decoration: none;
+    font-weight: 500;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    transition: background-color 0.3s ease;
+}
+
+.main-nav a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Conteúdo principal */
+.main-content {
+    flex-grow: 1; /* Permite que o conteúdo ocupe o espaço restante */
+    padding: var(--spacing-lg) var(--spacing-md);
+    max-width: 1200px; /* Largura máxima para o conteúdo */
+    margin: 0 auto; /* Centraliza o conteúdo na página */
+    width: 100%; /* Ocupa a largura total até o max-width */
+    box-sizing: border-box;
+}
+
+/* Utilitários */
+.text-center {
+    text-align: center;
+}
+
+.button-group {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+    justify-content: flex-end; /* Alinha botões à direita por padrão */
+}
+.button-group.center {
+    justify-content: center;
+}
+.button-group.start {
+    justify-content: flex-start;
+}
