@@ -2,6 +2,7 @@ package com.estacionamento.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -9,12 +10,14 @@ import lombok.EqualsAndHashCode;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @Table(name = "Contratante")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = {"estacionamentos", "eventos"}) 
+@EqualsAndHashCode(exclude = {"estacionamentos", "eventos"})
 public class Contratante {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,29 +35,52 @@ public class Contratante {
     @Column(name = "telefone", length = 20)
     private String telefone;
 
-    @ManyToMany(mappedBy = "contratantes", fetch = FetchType.LAZY)
+     @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "estacionamento_contratante",
+            joinColumns = @JoinColumn(name = "contratante_id"),
+            inverseJoinColumns = @JoinColumn(name = "estacionamento_id")
+    )
+    @JsonIgnore
+    @ToString.Exclude
     private Set<Estacionamento> estacionamentos = new HashSet<>();
 
-    @ManyToMany(mappedBy = "contratantes", fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "contratante_evento",
+            joinColumns = @JoinColumn(name = "contratante_id"),
+            inverseJoinColumns = @JoinColumn(name = "evento_id")
+    )
+    @JsonIgnore
+    @ToString.Exclude
     private Set<Evento> eventos = new HashSet<>();
 
+
     public void addEstacionamento(Estacionamento estacionamento) {
-        this.estacionamentos.add(estacionamento);
-        estacionamento.getContratantes().add(this);
+        if (estacionamento != null && !this.estacionamentos.contains(estacionamento)) {
+            this.estacionamentos.add(estacionamento);
+                estacionamento.addContratante(this); 
+        }
     }
 
     public void removeEstacionamento(Estacionamento estacionamento) {
-        this.estacionamentos.remove(estacionamento);
-        estacionamento.getContratantes().remove(this);
+        if (estacionamento != null && this.estacionamentos.contains(estacionamento)) {
+            this.estacionamentos.remove(estacionamento);
+                estacionamento.removeContratante(this);
+        }
     }
 
     public void addEvento(Evento evento) {
-        this.eventos.add(evento);
-        evento.getContratantes().add(this);
+        if (evento != null && !this.eventos.contains(evento)) {
+            this.eventos.add(evento);
+                evento.addContratante(this);
+        }
     }
 
     public void removeEvento(Evento evento) {
-        this.eventos.remove(evento);
-        evento.getContratantes().remove(this);
+        if (evento != null && this.eventos.contains(evento)) {
+            this.eventos.remove(evento);
+                evento.removeContratante(this);
+        }
     }
 }

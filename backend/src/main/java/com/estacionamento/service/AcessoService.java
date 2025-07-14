@@ -10,6 +10,7 @@ import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -38,7 +39,9 @@ public class AcessoService {
         validarAcesso(acesso);
 
         Estacionamento estacionamento = estacionamentoRepository.findById(acesso.getEstacionamento().getId())
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + acesso.getEstacionamento().getId() + " não encontrado."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                        "Estacionamento com ID " + acesso.getEstacionamento().getId() + " não encontrado."
+                ));
         acesso.setEstacionamento(estacionamento);
 
         Veiculo veiculo = veiculoRepository.findByPlaca(acesso.getVeiculo().getPlaca())
@@ -52,33 +55,51 @@ public class AcessoService {
         switch (acesso.getTipoAcesso().toUpperCase()) {
             case "TEMPO":
                 if (acesso.getTempo() == null || acesso.getTempo().getId() == null) {
-                    throw new DescricaoEmBrancoException("Tempo associado ao acesso não pode ser nulo para tipo TEMPO.");
+                    throw new DescricaoEmBrancoException(
+                        "Tempo associado ao acesso não pode ser nulo para tipo TEMPO."
+                    );
                 }
                 Tempo tempo = tempoRepository.findById(acesso.getTempo().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Tempo com ID " + acesso.getTempo().getId() + " não encontrado."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Tempo com ID " + acesso.getTempo().getId() + " não encontrado."
+                        ));
                 acesso.setTempo(tempo);
                 break;
             case "DIARIA":
                 if (acesso.getDiaria() == null || acesso.getDiaria().getId() == null) {
-                    throw new DescricaoEmBrancoException("Diaria associada ao acesso não pode ser nula para tipo DIARIA.");
+                    throw new DescricaoEmBrancoException(
+                        "Diaria associada ao acesso não pode ser nula para tipo DIARIA."
+                    );
                 }
-                Diaria diaria = diariaRepository.findById(acesso.getDiaria().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Diaria com ID " + acesso.getDiaria().getId() + " não encontrada."));
-                acesso.setDiaria(diaria);
+                
+                Diaria diariaDoBanco = diariaRepository.findById(acesso.getDiaria().getId())
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Diaria com ID " + acesso.getDiaria().getId() + " não encontrada."
+                        ));
+
+                if (acesso.getDiaria().getDiariaNoturna() != null) {
+                    diariaDoBanco.setDiariaNoturna(acesso.getDiaria().getDiariaNoturna());
+                }
+                
+                acesso.setDiaria(diariaDoBanco);
                 break;
             case "MENSALISTA":
                 if (acesso.getMensalista() == null || acesso.getMensalista().getId() == null) {
-                    throw new DescricaoEmBrancoException("Mensalista associado ao acesso não pode ser nulo para tipo MENSALISTA.");
+                    throw new DescricaoEmBrancoException(
+                        "Mensalista associado ao acesso não pode ser nulo para tipo MENSALISTA."
+                    );
                 }
                 Mensalista mensalista = mensalistaRepository.findById(acesso.getMensalista().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Mensalista com ID " + acesso.getMensalista().getId() + " não encontrado."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Mensalista com ID " + acesso.getMensalista().getId() + " não encontrado."
+                        ));
                 acesso.setMensalista(mensalista);
                 break;
             default:
                 throw new IllegalArgumentException("Tipo de acesso inválido: " + acesso.getTipoAcesso());
         }
 
-        if (acesso.getSaida() != null) {
+        if (acesso.getDataFim() != null && acesso.getHoraFim() != null) {
             acesso.setValorCobrado(calcularValor(acesso));
         }
 
@@ -97,20 +118,26 @@ public class AcessoService {
     @Transactional
     public Acesso atualizarAcesso(Long id, Acesso acessoAtualizado) {
         Acesso acessoExistente = acessoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Acesso com ID " + id + " não encontrado para atualização."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                        "Acesso com ID " + id + " não encontrado para atualização."
+                ));
 
         validarAcesso(acessoAtualizado);
 
         Estacionamento estacionamento = estacionamentoRepository.findById(acessoAtualizado.getEstacionamento().getId())
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + acessoAtualizado.getEstacionamento().getId() + " não encontrado."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                        "Estacionamento com ID " + acessoAtualizado.getEstacionamento().getId() + " não encontrado."
+                ));
         acessoExistente.setEstacionamento(estacionamento);
 
         Veiculo veiculo = veiculoRepository.findByPlaca(acessoAtualizado.getVeiculo().getPlaca())
                 .orElseGet(() -> veiculoRepository.save(acessoAtualizado.getVeiculo()));
         acessoExistente.setVeiculo(veiculo);
 
-        acessoExistente.setEntrada(acessoAtualizado.getEntrada());
-        acessoExistente.setSaida(acessoAtualizado.getSaida());
+        acessoExistente.setDataInicio(acessoAtualizado.getDataInicio());
+        acessoExistente.setHoraInicio(acessoAtualizado.getHoraInicio());
+        acessoExistente.setDataFim(acessoAtualizado.getDataFim());
+        acessoExistente.setHoraFim(acessoAtualizado.getHoraFim());
         acessoExistente.setTipoAcesso(acessoAtualizado.getTipoAcesso());
 
         acessoExistente.setTempo(null);
@@ -120,33 +147,49 @@ public class AcessoService {
         switch (acessoAtualizado.getTipoAcesso().toUpperCase()) {
             case "TEMPO":
                 if (acessoAtualizado.getTempo() == null || acessoAtualizado.getTempo().getId() == null) {
-                    throw new DescricaoEmBrancoException("Tempo associado ao acesso não pode ser nulo para tipo TEMPO.");
+                    throw new DescricaoEmBrancoException(
+                        "Tempo associado ao acesso não pode ser nulo para tipo TEMPO."
+                    );
                 }
                 Tempo tempo = tempoRepository.findById(acessoAtualizado.getTempo().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Tempo com ID " + acessoAtualizado.getTempo().getId() + " não encontrado."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Tempo com ID " + acessoAtualizado.getTempo().getId() + " não encontrado."
+                        ));
                 acessoExistente.setTempo(tempo);
                 break;
             case "DIARIA":
                 if (acessoAtualizado.getDiaria() == null || acessoAtualizado.getDiaria().getId() == null) {
-                    throw new DescricaoEmBrancoException("Diaria associada ao acesso não pode ser nula para tipo DIARIA.");
+                    throw new DescricaoEmBrancoException(
+                        "Diaria associada ao acesso não pode ser nula para tipo DIARIA."
+                    );
                 }
-                Diaria diaria = diariaRepository.findById(acessoAtualizado.getDiaria().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Diaria com ID " + acessoAtualizado.getDiaria().getId() + " não encontrada."));
-                acessoExistente.setDiaria(diaria);
+                Diaria diariaDoBancoAtualizado = diariaRepository.findById(acessoAtualizado.getDiaria().getId())
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Diaria com ID " + acessoAtualizado.getDiaria().getId() + " não encontrada."));
+
+                if (acessoAtualizado.getDiaria().getDiariaNoturna() != null) {
+                    diariaDoBancoAtualizado.setDiariaNoturna(acessoAtualizado.getDiaria().getDiariaNoturna());
+                }
+                
+                acessoExistente.setDiaria(diariaDoBancoAtualizado);
                 break;
             case "MENSALISTA":
                 if (acessoAtualizado.getMensalista() == null || acessoAtualizado.getMensalista().getId() == null) {
-                    throw new DescricaoEmBrancoException("Mensalista associado ao acesso não pode ser nulo para tipo MENSALISTA.");
+                    throw new DescricaoEmBrancoException(
+                        "Mensalista associado ao acesso não pode ser nulo para tipo MENSALISTA."
+                    );
                 }
                 Mensalista mensalista = mensalistaRepository.findById(acessoAtualizado.getMensalista().getId())
-                        .orElseThrow(() -> new ObjetoNaoEncontradoException("Mensalista com ID " + acessoAtualizado.getMensalista().getId() + " não encontrado."));
+                        .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Mensalista com ID " + acessoAtualizado.getMensalista().getId() + " não encontrado."
+                        ));
                 acessoExistente.setMensalista(mensalista);
                 break;
             default:
                 throw new IllegalArgumentException("Tipo de acesso inválido: " + acessoAtualizado.getTipoAcesso());
         }
 
-        if (acessoAtualizado.getSaida() != null) {
+        if (acessoAtualizado.getDataFim() != null && acessoAtualizado.getHoraFim() != null) {
             acessoExistente.setValorCobrado(calcularValor(acessoExistente));
         } else {
             acessoExistente.setValorCobrado(null);
@@ -158,7 +201,9 @@ public class AcessoService {
     @Transactional
     public void deletarAcesso(Long id) {
         Acesso acesso = acessoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Acesso com ID " + id + " não encontrado para exclusão."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                        "Acesso com ID " + id + " não encontrado para exclusão."
+                ));
         acessoRepository.delete(acesso);
     }
 
@@ -169,23 +214,40 @@ public class AcessoService {
         if (acesso.getVeiculo() == null || !StringUtils.hasText(acesso.getVeiculo().getPlaca())) {
             throw new DescricaoEmBrancoException("Veículo não pode ser nulo ou ter placa em branco.");
         }
-        if (acesso.getEntrada() == null) {
-            throw new DescricaoEmBrancoException("Hora de entrada não pode ser nula.");
+        if (acesso.getDataInicio() == null || acesso.getHoraInicio() == null) {
+            throw new DescricaoEmBrancoException("Data e hora de início não podem ser nulas.");
         }
-        if (acesso.getSaida() != null && acesso.getSaida().isBefore(acesso.getEntrada())) {
-            throw new IllegalArgumentException("Hora de saída não pode ser anterior à hora de entrada.");
+
+        if (acesso.getDataFim() != null && acesso.getHoraFim() != null) {
+            LocalDateTime entrada = LocalDateTime.of(acesso.getDataInicio(), acesso.getHoraInicio());
+            LocalDateTime saida = LocalDateTime.of(acesso.getDataFim(), acesso.getHoraFim());
+            
+            if (saida.isBefore(entrada)) {
+                throw new IllegalArgumentException("Data/hora de saída não pode ser anterior à data/hora de entrada.");
+            }
         }
     }
 
-    // Este método é público apenas para ser acessado pelo teste, normalmente seria private.
-    // Garanta que o cálculo está correto conforme sua regra de negócio.
+    private LocalDateTime getEntrada(Acesso acesso) {
+        return LocalDateTime.of(acesso.getDataInicio(), acesso.getHoraInicio());
+    }
+
+    private LocalDateTime getSaida(Acesso acesso) {
+        if (acesso.getDataFim() == null || acesso.getHoraFim() == null) {
+            return null;
+        }
+        return LocalDateTime.of(acesso.getDataFim(), acesso.getHoraFim());
+    }
+
     @SuppressWarnings({ "deprecation", "null" })
     public BigDecimal calcularValor(Acesso acesso) {
-        if (acesso.getSaida() == null) {
+        LocalDateTime saida = getSaida(acesso);
+        if (saida == null) {
             return BigDecimal.ZERO;
         }
 
-        Duration duracao = Duration.between(acesso.getEntrada(), acesso.getSaida());
+        LocalDateTime entrada = getEntrada(acesso);
+        Duration duracao = Duration.between(entrada, saida);
         long minutos = duracao.toMinutes();
 
         switch (acesso.getTipoAcesso().toUpperCase()) {
@@ -193,7 +255,8 @@ public class AcessoService {
                 if (acesso.getTempo() == null) {
                     throw new IllegalStateException("Configuração de Tempo não encontrada para este acesso.");
                 }
-                long duracaoFracaoMinutos = (acesso.getTempo().getDuracao().getHour() * 60L) + acesso.getTempo().getDuracao().getMinute();
+                long duracaoFracaoMinutos = (
+                    acesso.getTempo().getDuracao().getHour() * 60L) + acesso.getTempo().getDuracao().getMinute();
                 if (duracaoFracaoMinutos <= 0) {
                     throw new IllegalStateException("Duração da fração de tempo deve ser maior que zero.");
                 }
@@ -204,8 +267,12 @@ public class AcessoService {
                     valorTotalTempo = acesso.getTempo().getValorFracao().multiply(BigDecimal.valueOf(numFracoes));
                 }
 
-                if (acesso.getTempo().getDesconto() != null && acesso.getTempo().getDesconto().compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal desconto = valorTotalTempo.multiply(acesso.getTempo().getDesconto().divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP));
+                if (acesso.getTempo().getDesconto() !=
+                null && acesso.getTempo().getDesconto().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal desconto =
+                    valorTotalTempo.multiply(
+                        acesso.getTempo().getDesconto().divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP)
+                    );
                     valorTotalTempo = valorTotalTempo.subtract(desconto);
                 }
                 return valorTotalTempo.setScale(2, BigDecimal.ROUND_HALF_UP);
@@ -221,21 +288,16 @@ public class AcessoService {
                 }
 
                 DiariaNoturna diariaNoturna = acesso.getDiaria().getDiariaNoturna();
-                if (diariaNoturna != null && diariaNoturna.getAdicionalNoturno() != null &&
-                    // Verifica se a hora de saída está dentro do período noturno.
-                    // Isso precisa de uma lógica mais robusta para lidar com virada de dia.
-                    // Por exemplo: 22h-06h. Se saida for 23h, está no período. Se saida for 02h, está no período.
-                    // Para simplificar para o teste, estamos apenas verificando se a saída está no intervalo.
-                    // Se o período noturno cruza a meia-noite (e.g., 22:00 a 06:00 do dia seguinte)
-                    (diariaNoturna.getHoraInicio().isBefore(diariaNoturna.getHoraFim()) &&
-                     acesso.getSaida().toLocalTime().isAfter(diariaNoturna.getHoraInicio()) &&
-                     acesso.getSaida().toLocalTime().isBefore(diariaNoturna.getHoraFim())) ||
-                    // Se o período noturno cruza a meia-noite (e.g., 22:00 a 02:00 do dia seguinte)
-                    (diariaNoturna.getHoraInicio().isAfter(diariaNoturna.getHoraFim()) &&
-                     (acesso.getSaida().toLocalTime().isAfter(diariaNoturna.getHoraInicio()) ||
-                      acesso.getSaida().toLocalTime().isBefore(diariaNoturna.getHoraFim())))
-                ) {
-                    return valorDiaria.add(diariaNoturna.getAdicionalNoturno()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                if (diariaNoturna != null && diariaNoturna.getAdicionalNoturno() != null) {
+                    if ((diariaNoturna.getHoraInicio().isBefore(diariaNoturna.getHoraFim()) &&
+                         saida.toLocalTime().isAfter(diariaNoturna.getHoraInicio()) &&
+                         saida.toLocalTime().isBefore(diariaNoturna.getHoraFim())) ||
+                        (diariaNoturna.getHoraInicio().isAfter(diariaNoturna.getHoraFim()) &&
+                         (saida.toLocalTime().isAfter(diariaNoturna.getHoraInicio()) ||
+                          saida.toLocalTime().isBefore(diariaNoturna.getHoraFim())))
+                    ) {
+                        return valorDiaria.add(diariaNoturna.getAdicionalNoturno()).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    }
                 }
                 return valorDiaria.setScale(2, BigDecimal.ROUND_HALF_UP);
 

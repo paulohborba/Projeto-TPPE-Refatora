@@ -39,7 +39,9 @@ public class ContratanteController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Contratante> atualizarContratante(@PathVariable Long id, @RequestBody Contratante contratanteAtualizado) {
+    public ResponseEntity<Contratante> atualizarContratante(
+        @PathVariable Long id, @RequestBody Contratante contratanteAtualizado
+    ) {
         Contratante contratante = contratanteService.atualizarContratante(id, contratanteAtualizado);
         return new ResponseEntity<>(contratante, HttpStatus.OK);
     }

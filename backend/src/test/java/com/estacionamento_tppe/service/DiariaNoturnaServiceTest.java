@@ -84,7 +84,7 @@ class DiariaNoturnaServiceTest {
         outraDiariaNoturna.setHoraInicio(LocalTime.of(23, 0));
         outraDiariaNoturna.setHoraFim(LocalTime.of(7, 0));
         outraDiariaNoturna.setAdicionalNoturno(new BigDecimal("12.50"));
-        outraDiariaNoturna.setDiaria(new Diaria(2L, new BigDecimal("60.00"), "Noturna Teste", "Desc"));
+        outraDiariaNoturna.setDiaria(new Diaria(2L, new BigDecimal("60.00"), "Noturna Teste", "Desc", null));
 
         List<DiariaNoturna> diariasNoturnas = Arrays.asList(diariaNoturnaValida, outraDiariaNoturna);
         when(diariaNoturnaRepository.findAll()).thenReturn(diariasNoturnas);
@@ -127,7 +127,8 @@ class DiariaNoturnaServiceTest {
 
         when(diariaNoturnaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> diariaNoturnaService.atualizarDiariaNoturna(99L, atualizacaoPayload));
+        assertThrows(ObjetoNaoEncontradoException.class, () -> 
+        diariaNoturnaService.atualizarDiariaNoturna(99L, atualizacaoPayload));
         verify(diariaNoturnaRepository, never()).save(any(DiariaNoturna.class));
     }
 
@@ -140,8 +141,8 @@ class DiariaNoturnaServiceTest {
         atualizacaoPayload.setAdicionalNoturno(new BigDecimal("10.00"));
 
         when(diariaNoturnaRepository.findById(1L)).thenReturn(Optional.of(diariaNoturnaValida));
-
-        assertThrows(DescricaoEmBrancoException.class, () -> diariaNoturnaService.atualizarDiariaNoturna(1L, atualizacaoPayload));
+        assertThrows(DescricaoEmBrancoException.class, () -> 
+        diariaNoturnaService.atualizarDiariaNoturna(1L, atualizacaoPayload));
         verify(diariaNoturnaRepository, never()).save(any(DiariaNoturna.class));
     }
 
@@ -155,7 +156,8 @@ class DiariaNoturnaServiceTest {
 
         when(diariaNoturnaRepository.findById(1L)).thenReturn(Optional.of(diariaNoturnaValida));
 
-        assertThrows(IllegalArgumentException.class, () -> diariaNoturnaService.atualizarDiariaNoturna(1L, atualizacaoPayload));
+        assertThrows(IllegalArgumentException.class, () -> 
+        diariaNoturnaService.atualizarDiariaNoturna(1L, atualizacaoPayload));
         verify(diariaNoturnaRepository, never()).save(any(DiariaNoturna.class));
     }
 

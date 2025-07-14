@@ -3,19 +3,23 @@ package com.estacionamento.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "Evento")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = "contratantes") 
+@EqualsAndHashCode(exclude = "contratantes")
 public class Evento {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,27 +29,34 @@ public class Evento {
     private String nomeEvento;
 
     @Column(name = "data_inicio", nullable = false)
-    private LocalDateTime dataInicio;
+    private LocalDate dataInicio;
+
+    @Column(name = "hora_inicio", nullable = false)
+    private LocalTime horaInicio;
 
     @Column(name = "data_fim", nullable = false)
-    private LocalDateTime dataFim;
+    private LocalDate dataFim;
 
-    @Column(name = "descricao", columnDefinition = "TEXT")
+    @Column(name = "hora_fim", nullable = false)
+    private LocalTime horaFim;
+
+    @Column(columnDefinition = "TEXT")
     private String descricao;
 
-    @ManyToMany(mappedBy = "eventos", fetch = FetchType.LAZY)
+       @ManyToMany(mappedBy = "eventos", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude
     private Set<Contratante> contratantes = new HashSet<>();
 
     public void addContratante(Contratante contratante) {
-        this.contratantes.add(contratante);
-        contratante.getEventos().add(this);
+        if (contratante != null && !this.contratantes.contains(contratante)) {
+            this.contratantes.add(contratante);
+        }
     }
 
     public void removeContratante(Contratante contratante) {
-        this.contratantes.remove(contratante);
-        contratante.getEventos().remove(this);
-    }
-
-    public Evento(long l, String string, String string2, LocalDateTime now, LocalDateTime plusHours, @SuppressWarnings("rawtypes") HashSet hashSet) {
+        if (contratante != null && this.contratantes.contains(contratante)) { 
+            this.contratantes.remove(contratante);
+        }
     }
 }

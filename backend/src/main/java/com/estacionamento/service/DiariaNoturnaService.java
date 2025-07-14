@@ -22,7 +22,9 @@ public class DiariaNoturnaService {
 
     public DiariaNoturna buscarDiariaNoturnaPorId(Long id) {
         return diariaNoturnaRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Diária Noturna com ID " + id + " não encontrada."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Configuração de Diária Noturna com ID " + id + " não encontrada."
+                ));
     }
 
     public List<DiariaNoturna> listarTodasDiariasNoturnas() {
@@ -32,28 +34,40 @@ public class DiariaNoturnaService {
     @Transactional
     public DiariaNoturna atualizarDiariaNoturna(Long id, DiariaNoturna diariaNoturnaAtualizada) {
         DiariaNoturna diariaNoturnaExistente = diariaNoturnaRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Diária Noturna com ID " + id + " não encontrada para atualização."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Configuração de Diária Noturna com ID " + id + " não encontrada para atualização."
+                ));
 
         if (diariaNoturnaAtualizada.getHoraInicio() == null) {
-            throw new DescricaoEmBrancoException("A hora de início da diária noturna não pode ser nula.");
+            throw new DescricaoEmBrancoException(
+                "A hora de início da diária noturna não pode ser nula."
+            );
         }
         if (diariaNoturnaAtualizada.getHoraFim() == null) {
-            throw new DescricaoEmBrancoException("A hora de fim da diária noturna não pode ser nula.");
+            throw new DescricaoEmBrancoException(
+                "A hora de fim da diária noturna não pode ser nula."
+            );
         }
-        if (diariaNoturnaAtualizada.getAdicionalNoturno() != null && diariaNoturnaAtualizada.getAdicionalNoturno().compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("O adicional noturno não pode ser negativo.");
+        if (diariaNoturnaAtualizada.getAdicionalNoturno() != 
+        null && diariaNoturnaAtualizada.getAdicionalNoturno().compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException(
+                "O adicional noturno não pode ser negativo."
+            ); 
         }
 
         diariaNoturnaExistente.setHoraInicio(diariaNoturnaAtualizada.getHoraInicio());
         diariaNoturnaExistente.setHoraFim(diariaNoturnaAtualizada.getHoraFim());
-        diariaNoturnaExistente.setAdicionalNoturno(diariaNoturnaAtualizada.getAdicionalNoturno().setScale(2, RoundingMode.HALF_UP));
+        diariaNoturnaExistente.setAdicionalNoturno(diariaNoturnaAtualizada.getAdicionalNoturno().setScale(
+            2, RoundingMode.HALF_UP));
 
         return diariaNoturnaRepository.save(diariaNoturnaExistente);
     }
 
     public void deletarDiariaNoturna(Long id) {
         if (!diariaNoturnaRepository.existsById(id)) {
-            throw new ObjetoNaoEncontradoException("Configuração de Diária Noturna com ID " + id + " não encontrada para exclusão.");
+            throw new ObjetoNaoEncontradoException(
+                "Configuração de Diária Noturna com ID " + id + " não encontrada para exclusão."
+            );
         }
         diariaNoturnaRepository.deleteById(id);
     }

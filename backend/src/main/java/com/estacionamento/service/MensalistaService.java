@@ -34,7 +34,9 @@ public class MensalistaService {
 
     public Mensalista buscarMensalistaPorId(Long id) {
         return mensalistaRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Mensalista com ID " + id + " não encontrada."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Configuração de Mensalista com ID " + id + " não encontrada."
+                ));
     }
 
     public List<Mensalista> listarTodosMensalistas() {
@@ -43,9 +45,12 @@ public class MensalistaService {
 
     public Mensalista atualizarMensalista(Long id, Mensalista mensalistaAtualizado) {
         Mensalista mensalistaExistente = mensalistaRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Mensalista com ID " + id + " não encontrada para atualização."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Configuração de Mensalista com ID " + id + " não encontrada para atualização."
+                ));
 
-        if (mensalistaAtualizado.getValor() == null || mensalistaAtualizado.getValor().compareTo(BigDecimal.ZERO) <= 0) {
+        if (mensalistaAtualizado.getValor() == null || 
+        mensalistaAtualizado.getValor().compareTo(BigDecimal.ZERO) <= 0) {
             throw new DescricaoEmBrancoException("O valor da mensalidade não pode ser nulo ou menor/igual a zero.");
         }
         if (mensalistaAtualizado.getPeriodoMeses() != null && mensalistaAtualizado.getPeriodoMeses() <= 0) {
@@ -61,7 +66,9 @@ public class MensalistaService {
 
     public void deletarMensalista(Long id) {
         if (!mensalistaRepository.existsById(id)) {
-            throw new ObjetoNaoEncontradoException("Configuração de Mensalista com ID " + id + " não encontrada para exclusão.");
+            throw new ObjetoNaoEncontradoException(
+                "Configuração de Mensalista com ID " + id + " não encontrada para exclusão."
+            );
         }
         mensalistaRepository.deleteById(id);
     }

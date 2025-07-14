@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Optional;
@@ -61,8 +61,12 @@ class AcessoServiceTest {
         veiculoPadrao = new Veiculo(1L, "ABC1234", "Fiat", "Uno", "Preto");
         tempoPadrao = new Tempo(1L, LocalTime.of(0, 15), BigDecimal.valueOf(10.00), BigDecimal.valueOf(10.0));
 
-        diariaNoturnaPadrao = new DiariaNoturna(2L, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(5.00), null);
-        diariaPadrao = new Diaria(2L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", diariaNoturnaPadrao);
+        diariaNoturnaPadrao = new DiariaNoturna(
+            2L, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(5.00), null
+        );
+        diariaPadrao = new Diaria(
+            2L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", diariaNoturnaPadrao
+        );
         diariaNoturnaPadrao.setDiaria(diariaPadrao);
 
         mensalistaPadrao = new Mensalista(3L, BigDecimal.valueOf(300.00), 1, "Plano Mensal");
@@ -71,17 +75,23 @@ class AcessoServiceTest {
         acessoValido.setId(1L);
         acessoValido.setEstacionamento(estacionamentoPadrao);
         acessoValido.setVeiculo(veiculoPadrao);
-        acessoValido.setEntrada(LocalDateTime.of(2024, 7, 1, 9, 0));
+        acessoValido.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoValido.setHoraInicio(LocalTime.of(9, 7, 1));
         acessoValido.setTipoAcesso("TEMPO");
         acessoValido.setTempo(tempoPadrao);
 
-        reset(acessoRepository, estacionamentoRepository, veiculoRepository, tempoRepository, diariaRepository, mensalistaRepository);
+        reset(
+            acessoRepository, estacionamentoRepository, veiculoRepository, 
+            tempoRepository, diariaRepository, mensalistaRepository
+        );
     }
 
     @Test
     @DisplayName("Deve criar um acesso do tipo TEMPO com sucesso")
     void deveCriarAcessoTempoComSucesso() {
-        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(estacionamentoPadrao));
+        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(
+            estacionamentoPadrao)
+        );
         lenient().when(veiculoRepository.findByPlaca(veiculoPadrao.getPlaca())).thenReturn(Optional.of(veiculoPadrao));
         lenient().when(tempoRepository.findById(tempoPadrao.getId())).thenReturn(Optional.of(tempoPadrao));
         when(acessoRepository.save(any(Acesso.class))).thenReturn(acessoValido);
@@ -99,10 +109,14 @@ class AcessoServiceTest {
     void deveCriarAcessoDiariaComSucessoECalcularValorComSaida() {
         acessoValido.setTipoAcesso("DIARIA");
         acessoValido.setDiaria(diariaPadrao);
-        acessoValido.setEntrada(LocalDateTime.of(2024, 7, 1, 10, 0));
-        acessoValido.setSaida(LocalDateTime.of(2024, 7, 1, 23, 0));
+        acessoValido.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoValido.setHoraInicio(LocalTime.of(10, 0, 1));
+        acessoValido.setDataFim(LocalDate.of(2024, 7, 1));
+        acessoValido.setHoraFim(LocalTime.of(23, 0, 1));
 
-        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(estacionamentoPadrao));
+        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(
+            estacionamentoPadrao)
+        );
         lenient().when(veiculoRepository.findByPlaca(veiculoPadrao.getPlaca())).thenReturn(Optional.of(veiculoPadrao));
         lenient().when(diariaRepository.findById(diariaPadrao.getId())).thenReturn(Optional.of(diariaPadrao));
         when(acessoRepository.save(any(Acesso.class))).thenAnswer(invocation -> {
@@ -125,11 +139,16 @@ class AcessoServiceTest {
     void deveCriarAcessoMensalistaComSucesso() {
         acessoValido.setTipoAcesso("MENSALISTA");
         acessoValido.setMensalista(mensalistaPadrao);
-        acessoValido.setSaida(null);
+        acessoValido.setDataFim(null);
+        acessoValido.setHoraFim(null);
 
-        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(estacionamentoPadrao));
+        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(
+            estacionamentoPadrao)
+        );
         lenient().when(veiculoRepository.findByPlaca(veiculoPadrao.getPlaca())).thenReturn(Optional.of(veiculoPadrao));
-        lenient().when(mensalistaRepository.findById(mensalistaPadrao.getId())).thenReturn(Optional.of(mensalistaPadrao));
+        lenient().when(mensalistaRepository.findById(mensalistaPadrao.getId())).thenReturn(Optional.of(
+            mensalistaPadrao)
+        );
         when(acessoRepository.save(any(Acesso.class))).thenReturn(acessoValido);
 
         Acesso salvo = acessoService.criarAcesso(acessoValido);
@@ -159,7 +178,8 @@ class AcessoServiceTest {
     @Test
     @DisplayName("Deve lançar DescricaoEmBrancoException se hora de entrada for nula")
     void deveLancarExcecaoSeEntradaNula() {
-        acessoValido.setEntrada(null);
+        acessoValido.setDataInicio(null);
+        acessoValido.setHoraInicio(null);
         assertThrows(DescricaoEmBrancoException.class, () -> acessoService.criarAcesso(acessoValido));
         verify(acessoRepository, never()).save(any(Acesso.class));
     }
@@ -167,8 +187,10 @@ class AcessoServiceTest {
     @Test
     @DisplayName("Deve lançar IllegalArgumentException se hora de saída for anterior à entrada")
     void deveLancarExcecaoSeSaidaAnteriorAEntrada() {
-        acessoValido.setEntrada(LocalDateTime.of(2024, 7, 1, 10, 0));
-        acessoValido.setSaida(LocalDateTime.of(2024, 7, 1, 9, 0));
+        acessoValido.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoValido.setHoraInicio(LocalTime.of(10, 0, 0));
+        acessoValido.setDataFim(LocalDate.of(2024, 7, 1));
+        acessoValido.setHoraFim(LocalTime.of(9, 0, 0));
         assertThrows(IllegalArgumentException.class, () -> acessoService.criarAcesso(acessoValido));
         verify(acessoRepository, never()).save(any(Acesso.class));
     }
@@ -215,20 +237,25 @@ class AcessoServiceTest {
         acessoExistente.setId(1L);
         acessoExistente.setEstacionamento(estacionamentoPadrao);
         acessoExistente.setVeiculo(veiculoPadrao);
-        acessoExistente.setEntrada(LocalDateTime.of(2024, 7, 1, 9, 0));
+        acessoExistente.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoExistente.setHoraInicio(LocalTime.of(9, 0, 0));
         acessoExistente.setTipoAcesso("TEMPO");
         acessoExistente.setTempo(tempoPadrao);
 
         Acesso acessoAtualizado = new Acesso();
         acessoAtualizado.setEstacionamento(estacionamentoPadrao);
         acessoAtualizado.setVeiculo(new Veiculo(2L, "DEF5678", "VW", "Gol", "Azul"));
-        acessoAtualizado.setEntrada(LocalDateTime.of(2024, 7, 1, 9, 30));
-        acessoAtualizado.setSaida(LocalDateTime.of(2024, 7, 1, 10, 0));
+        acessoAtualizado.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoAtualizado.setHoraInicio(LocalTime.of(9, 30, 0));
+        acessoAtualizado.setDataFim(LocalDate.of(2024, 7, 1));
+        acessoAtualizado.setHoraFim(LocalTime.of(10, 0, 0));
         acessoAtualizado.setTipoAcesso("TEMPO");
         acessoAtualizado.setTempo(tempoPadrao);
 
         lenient().when(acessoRepository.findById(1L)).thenReturn(Optional.of(acessoExistente));
-        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(estacionamentoPadrao));
+        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(
+            estacionamentoPadrao)
+        );
         lenient().when(veiculoRepository.findByPlaca("DEF5678")).thenReturn(Optional.of(acessoAtualizado.getVeiculo()));
         lenient().when(tempoRepository.findById(tempoPadrao.getId())).thenReturn(Optional.of(tempoPadrao));
         when(acessoRepository.save(any(Acesso.class))).thenAnswer(i -> i.getArguments()[0]);
@@ -238,8 +265,10 @@ class AcessoServiceTest {
 
         assertNotNull(atualizado);
         assertEquals("DEF5678", atualizado.getVeiculo().getPlaca());
-        assertEquals(LocalDateTime.of(2024, 7, 1, 9, 30), atualizado.getEntrada());
-        assertEquals(LocalDateTime.of(2024, 7, 1, 10, 0), atualizado.getSaida());
+        assertEquals(LocalDate.of(2024, 7, 1), atualizado.getDataInicio());
+        assertEquals(LocalTime.of(9, 30, 0), atualizado.getHoraInicio());
+        assertEquals(LocalDate.of(2024, 7, 1), atualizado.getDataFim());
+        assertEquals(LocalTime.of(10, 0, 0), atualizado.getHoraFim());
         assertEquals(BigDecimal.valueOf(18.00).setScale(2, BigDecimal.ROUND_HALF_UP), atualizado.getValorCobrado());
         verify(acessoRepository, times(1)).findById(1L);
         verify(acessoRepository, times(1)).save(acessoExistente);
@@ -251,7 +280,8 @@ class AcessoServiceTest {
         Acesso acessoAtualizado = new Acesso();
         acessoAtualizado.setEstacionamento(estacionamentoPadrao);
         acessoAtualizado.setVeiculo(veiculoPadrao);
-        acessoAtualizado.setEntrada(LocalDateTime.now());
+        acessoAtualizado.setDataInicio(LocalDate.now());
+        acessoAtualizado.setHoraInicio(LocalTime.now());
         acessoAtualizado.setTipoAcesso("TEMPO");
         acessoAtualizado.setTempo(tempoPadrao);
 
@@ -268,20 +298,25 @@ class AcessoServiceTest {
         acessoExistente.setId(1L);
         acessoExistente.setEstacionamento(estacionamentoPadrao);
         acessoExistente.setVeiculo(veiculoPadrao);
-        acessoExistente.setEntrada(LocalDateTime.of(2024, 7, 1, 10, 0));
+        acessoExistente.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoExistente.setHoraInicio(LocalTime.of(9, 0, 0));
         acessoExistente.setTipoAcesso("TEMPO");
         acessoExistente.setTempo(tempoPadrao);
 
         Acesso acessoAtualizado = new Acesso();
         acessoAtualizado.setEstacionamento(estacionamentoPadrao);
 acessoAtualizado.setVeiculo(veiculoPadrao);
-        acessoAtualizado.setEntrada(LocalDateTime.of(2024, 7, 1, 10, 0));
-        acessoAtualizado.setSaida(LocalDateTime.of(2024, 7, 1, 9, 0));
+        acessoAtualizado.setDataInicio(LocalDate.of(2024, 7, 1));
+        acessoAtualizado.setHoraInicio(LocalTime.of(10, 0, 0));
+        acessoAtualizado.setDataFim(LocalDate.of(2024, 7, 1));
+        acessoAtualizado.setHoraFim(LocalTime.of(9, 0, 0));
         acessoAtualizado.setTipoAcesso("TEMPO");
         acessoAtualizado.setTempo(tempoPadrao);
 
         lenient().when(acessoRepository.findById(1L)).thenReturn(Optional.of(acessoExistente));
-        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(estacionamentoPadrao));
+        lenient().when(estacionamentoRepository.findById(estacionamentoPadrao.getId())).thenReturn(Optional.of(
+            estacionamentoPadrao)
+        );
         lenient().when(veiculoRepository.findByPlaca(veiculoPadrao.getPlaca())).thenReturn(Optional.of(veiculoPadrao));
         lenient().when(tempoRepository.findById(tempoPadrao.getId())).thenReturn(Optional.of(tempoPadrao));
 

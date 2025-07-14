@@ -51,7 +51,9 @@ public class AcessoController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @ExceptionHandler({DescricaoEmBrancoException.class, IllegalArgumentException.class, ValorAcessoInvalidoException.class})
+    @ExceptionHandler(
+        {DescricaoEmBrancoException.class, IllegalArgumentException.class, ValorAcessoInvalidoException.class}
+    )
     public ResponseEntity<String> handleBadRequest(RuntimeException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }

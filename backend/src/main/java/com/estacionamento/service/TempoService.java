@@ -21,7 +21,9 @@ public class TempoService {
 
     public Tempo criarTempo(Tempo tempo) {
         if (tempo.getValorFracao() == null || tempo.getValorFracao().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DescricaoEmBrancoException("O valor da fração de tempo não pode ser nulo ou menor/igual a zero.");
+            throw new DescricaoEmBrancoException(
+                "O valor da fração de tempo não pode ser nulo ou menor/igual a zero."
+            );
         }
 
         tempo.setValorFracao(tempo.getValorFracao().setScale(2, RoundingMode.HALF_UP));
@@ -36,7 +38,9 @@ public class TempoService {
 
     public Tempo buscarTempoPorId(Long id) {
         return tempoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Tempo com ID " + id + " não encontrada."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Configuração de Tempo com ID " + id + " não encontrada."
+                ));
     }
 
     public List<Tempo> listarTodosTempos() {
@@ -45,10 +49,15 @@ public class TempoService {
 
     public Tempo atualizarTempo(Long id, Tempo tempoAtualizado) {
         Tempo tempoExistente = tempoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Configuração de Tempo com ID " + id + " não encontrada para atualização."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Configuração de Tempo com ID " + id + " não encontrada para atualização."
+                ));
 
-        if (tempoAtualizado.getValorFracao() == null || tempoAtualizado.getValorFracao().compareTo(BigDecimal.ZERO) <= 0) {
-            throw new DescricaoEmBrancoException("O valor da fração de tempo não pode ser nulo ou menor/igual a zero.");
+        if (tempoAtualizado.getValorFracao() == null || 
+        tempoAtualizado.getValorFracao().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new DescricaoEmBrancoException(
+                "O valor da fração de tempo não pode ser nulo ou menor/igual a zero."
+            );
         }
 
         tempoExistente.setDuracao(tempoAtualizado.getDuracao());
@@ -64,7 +73,9 @@ public class TempoService {
 
     public void deletarTempo(Long id) {
         if (!tempoRepository.existsById(id)) {
-            throw new ObjetoNaoEncontradoException("Configuração de Tempo com ID " + id + " não encontrada para exclusão.");
+            throw new ObjetoNaoEncontradoException(
+                "Configuração de Tempo com ID " + id + " não encontrada para exclusão."
+            );
         }
         tempoRepository.deleteById(id);
     }

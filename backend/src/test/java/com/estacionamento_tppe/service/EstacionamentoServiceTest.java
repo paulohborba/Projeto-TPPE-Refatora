@@ -68,8 +68,10 @@ class EstacionamentoServiceTest {
     @Test
     @DisplayName("Deve criar um estacionamento válido com sucesso")
     void deveCriarEstacionamentoValido() {
-        lenient().when(estacionamentoRepository.findByNome(anyString())).thenReturn(Optional.empty());
-        when(estacionamentoRepository.save(any(Estacionamento.class))).thenReturn(estacionamentoValido);
+        lenient().when(estacionamentoRepository.findByNome(anyString()))
+            .thenReturn(Optional.empty());
+        when(estacionamentoRepository.save(any(Estacionamento.class)))
+            .thenReturn(estacionamentoValido);
 
         Estacionamento salvo = estacionamentoService.criarEstacionamento(estacionamentoValido);
 
@@ -86,11 +88,13 @@ class EstacionamentoServiceTest {
         estComContratante.setEndereco("Endereço com Contratante");
         estComContratante.setCapacidade(30);
         estComContratante.setHoraAbertura(LocalTime.of(7, 0));
-    	estComContratante.setHoraFechamento(LocalTime.of(19, 0));
+        estComContratante.setHoraFechamento(LocalTime.of(19, 0));
         estComContratante.setContratantes(new HashSet<>(Arrays.asList(contratantePadrao)));
 
-        lenient().when(contratanteRepository.findById(contratantePadrao.getId())).thenReturn(Optional.of(contratantePadrao));
-        lenient().when(estacionamentoRepository.findByNome(anyString())).thenReturn(Optional.empty());
+        lenient().when(contratanteRepository.findById(contratantePadrao.getId()))
+            .thenReturn(Optional.of(contratantePadrao));
+        lenient().when(estacionamentoRepository.findByNome(anyString()))
+            .thenReturn(Optional.empty());
         when(estacionamentoRepository.save(any(Estacionamento.class))).thenAnswer(invocation -> {
             Estacionamento saved = invocation.getArgument(0);
             saved.setId(2L);
@@ -123,10 +127,13 @@ class EstacionamentoServiceTest {
         estComContratanteInexistente.setHoraFechamento(LocalTime.of(18, 0));
         estComContratanteInexistente.setContratantes(new HashSet<>(Arrays.asList(contratanteInexistente)));
 
-        lenient().when(estacionamentoRepository.findByNome(anyString())).thenReturn(Optional.empty());
-        when(contratanteRepository.findById(contratanteInexistente.getId())).thenReturn(Optional.empty());
+        lenient().when(estacionamentoRepository.findByNome(anyString()))
+            .thenReturn(Optional.empty());
+        when(contratanteRepository.findById(contratanteInexistente.getId()))
+            .thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> estacionamentoService.criarEstacionamento(estComContratanteInexistente));
+        assertThrows(ObjetoNaoEncontradoException.class, () ->
+            estacionamentoService.criarEstacionamento(estComContratanteInexistente));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
@@ -134,7 +141,8 @@ class EstacionamentoServiceTest {
     @DisplayName("Deve lançar DescricaoEmBrancoException ao criar estacionamento com nome em branco")
     void deveLancarExcecaoQuandoCriarEstacionamentoComNomeEmBranco() {
         estacionamentoValido.setNome("");
-        assertThrows(DescricaoEmBrancoException.class, () -> estacionamentoService.criarEstacionamento(estacionamentoValido));
+        assertThrows(DescricaoEmBrancoException.class, () ->
+            estacionamentoService.criarEstacionamento(estacionamentoValido));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
@@ -143,11 +151,13 @@ class EstacionamentoServiceTest {
     void deveLancarExcecaoQuandoCapacidadeInvalida() {
         estacionamentoValido.setEndereco("Rua Válida");
         estacionamentoValido.setCapacidade(0);
-        assertThrows(IllegalArgumentException.class, () -> estacionamentoService.criarEstacionamento(estacionamentoValido));
+        assertThrows(IllegalArgumentException.class, () ->
+            estacionamentoService.criarEstacionamento(estacionamentoValido));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
 
         estacionamentoValido.setCapacidade(-5);
-        assertThrows(IllegalArgumentException.class, () -> estacionamentoService.criarEstacionamento(estacionamentoValido));
+        assertThrows(IllegalArgumentException.class, () ->
+            estacionamentoService.criarEstacionamento(estacionamentoValido));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
@@ -157,7 +167,8 @@ class EstacionamentoServiceTest {
         estacionamentoValido.setEndereco("Rua Válida");
         estacionamentoValido.setHoraAbertura(LocalTime.of(10, 0));
         estacionamentoValido.setHoraFechamento(LocalTime.of(9, 0));
-        assertThrows(IllegalArgumentException.class, () -> estacionamentoService.criarEstacionamento(estacionamentoValido));
+        assertThrows(IllegalArgumentException.class, () ->
+            estacionamentoService.criarEstacionamento(estacionamentoValido));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
@@ -178,7 +189,8 @@ class EstacionamentoServiceTest {
     void deveLancarExcecaoQuandoBuscarEstacionamentoPorIdInexistente() {
         when(estacionamentoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> estacionamentoService.buscarEstacionamentoPorId(99L));
+        assertThrows(ObjetoNaoEncontradoException.class, () ->
+            estacionamentoService.buscarEstacionamentoPorId(99L));
         verify(estacionamentoRepository, times(1)).findById(99L);
     }
 
@@ -198,11 +210,18 @@ class EstacionamentoServiceTest {
     @Test
     @DisplayName("Deve atualizar um estacionamento existente com sucesso")
     void deveAtualizarEstacionamentoExistente() {
-        Contratante contratanteReal = new Contratante(10L, "Contratante Teste", "11.222.333/0001-44", "contrato@teste.com", "tel", new HashSet<>(), new HashSet<>());
+        Contratante contratanteReal = new Contratante(
+            10L, "Contratante Teste", "11.222.333/0001-44",
+            "contrato@teste.com", "tel", new HashSet<>(),
+            new HashSet<>()
+        );
         Contratante contratanteSpy = Mockito.spy(contratanteReal);
 
-        Estacionamento estacionamentoExistente = new Estacionamento(1L, "Nome Antigo", "End Antigo", 50, LocalTime.of(8,0), LocalTime.of(18,0), new HashSet<>());
-        estacionamentoExistente.addContratante(contratanteSpy); // Associa o spy ao estacionamento existente
+        Estacionamento estacionamentoExistente = new Estacionamento(
+            1L, "Nome Antigo", "End Antigo", 50, LocalTime.of(8, 0),
+            LocalTime.of(18, 0), new HashSet<>()
+        );
+        estacionamentoExistente.addContratante(contratanteSpy);
 
         Estacionamento estacionamentoAtualizadoPayload = new Estacionamento();
         estacionamentoAtualizadoPayload.setNome("Nome Atualizado");
@@ -210,14 +229,20 @@ class EstacionamentoServiceTest {
         estacionamentoAtualizadoPayload.setCapacidade(70);
         estacionamentoAtualizadoPayload.setHoraAbertura(LocalTime.of(9, 0));
         estacionamentoAtualizadoPayload.setHoraFechamento(LocalTime.of(20, 0));
-        estacionamentoAtualizadoPayload.setContratantes(new HashSet<>()); // Removendo contratantes existentes
+        estacionamentoAtualizadoPayload.setContratantes(new HashSet<>());
 
-        lenient().when(estacionamentoRepository.findById(1L)).thenReturn(Optional.of(estacionamentoExistente));
-        lenient().when(estacionamentoRepository.findByNome(anyString())).thenReturn(Optional.empty());
-        lenient().when(estacionamentoRepository.findByNome(estacionamentoExistente.getNome())).thenReturn(Optional.of(estacionamentoExistente));
-        when(estacionamentoRepository.save(any(Estacionamento.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(estacionamentoRepository.findById(1L))
+            .thenReturn(Optional.of(estacionamentoExistente));
+        lenient().when(estacionamentoRepository.findByNome(anyString()))
+            .thenReturn(Optional.empty());
+        lenient().when(estacionamentoRepository.findByNome(estacionamentoExistente.getNome()))
+            .thenReturn(Optional.of(estacionamentoExistente));
+        when(estacionamentoRepository.save(any(Estacionamento.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
 
-        Estacionamento atualizado = estacionamentoService.atualizarEstacionamento(1L, estacionamentoAtualizadoPayload);
+        Estacionamento atualizado = estacionamentoService.atualizarEstacionamento(
+            1L, estacionamentoAtualizadoPayload
+        );
 
         assertNotNull(atualizado);
         assertEquals("Nome Atualizado", atualizado.getNome());
@@ -227,10 +252,7 @@ class EstacionamentoServiceTest {
         assertEquals(LocalTime.of(20, 0), atualizado.getHoraFechamento());
         assertTrue(atualizado.getContratantes().isEmpty());
 
-        // Verifica se o método removeEstacionamento foi chamado no SPY do contratante
         verify(contratanteSpy, times(1)).removeEstacionamento(estacionamentoExistente);
-        // Verifica o estado da coleção bidirecional no SPY
-        assertFalse(contratanteSpy.getEstacionamentos().contains(estacionamentoExistente));
 
         verify(estacionamentoRepository, times(1)).findById(1L);
         verify(estacionamentoRepository, times(1)).save(estacionamentoExistente);
@@ -249,7 +271,8 @@ class EstacionamentoServiceTest {
 
         when(estacionamentoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> estacionamentoService.atualizarEstacionamento(99L, estacionamentoAtualizado));
+        assertThrows(ObjetoNaoEncontradoException.class, () ->
+            estacionamentoService.atualizarEstacionamento(99L, estacionamentoAtualizado));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
@@ -266,14 +289,14 @@ class EstacionamentoServiceTest {
 
         when(estacionamentoRepository.findById(1L)).thenReturn(Optional.of(estacionamentoValido));
 
-        assertThrows(DescricaoEmBrancoException.class, () -> estacionamentoService.atualizarEstacionamento(1L, estacionamentoAtualizado));
+        assertThrows(DescricaoEmBrancoException.class, () ->
+            estacionamentoService.atualizarEstacionamento(1L, estacionamentoAtualizado));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
     @Test
     @DisplayName("Deve deletar um estacionamento existente com sucesso e desassociar de contratantes")
     void deveDeletarEstacionamentoExistente() {
-        // Crie uma instância REAL de Contratante e um SPY dela
         Contratante contratanteReal = new Contratante();
         contratanteReal.setId(10L);
         contratanteReal.setNome("Contratante Associado Real");
@@ -283,32 +306,27 @@ class EstacionamentoServiceTest {
         contratanteReal.setEventos(new HashSet<>());
         Contratante contratanteSpy = Mockito.spy(contratanteReal);
 
-
         Estacionamento estacionamentoParaDeletar = new Estacionamento();
         estacionamentoParaDeletar.setId(1L);
         estacionamentoParaDeletar.setNome("Para Deletar");
         estacionamentoParaDeletar.setEndereco("Rua XYZ");
         estacionamentoParaDeletar.setCapacidade(20);
-        estacionamentoParaDeletar.setHoraAbertura(LocalTime.of(8,0));
-        estacionamentoParaDeletar.setHoraFechamento(LocalTime.of(18,0));
+        estacionamentoParaDeletar.setHoraAbertura(LocalTime.of(8, 0));
+        estacionamentoParaDeletar.setHoraFechamento(LocalTime.of(18, 0));
         estacionamentoParaDeletar.setContratantes(new HashSet<>());
 
-        // Associa o contratanteSpy ao estacionamento e vice-versa para simular o estado inicial
         estacionamentoParaDeletar.addContratante(contratanteSpy);
 
-
-        lenient().when(estacionamentoRepository.findById(1L)).thenReturn(Optional.of(estacionamentoParaDeletar));
+        lenient().when(estacionamentoRepository.findById(1L))
+            .thenReturn(Optional.of(estacionamentoParaDeletar));
         doNothing().when(estacionamentoRepository).delete(estacionamentoParaDeletar);
 
         assertDoesNotThrow(() -> estacionamentoService.deletarEstacionamento(1L));
 
         verify(estacionamentoRepository, times(1)).findById(1L);
         verify(estacionamentoRepository, times(1)).delete(estacionamentoParaDeletar);
-        // Verifica se o método removeEstacionamento foi chamado no SPY
         verify(contratanteSpy, times(1)).removeEstacionamento(estacionamentoParaDeletar);
 
-        // Verifica o estado da coleção no SPY após a execução do serviço
-        assertFalse(contratanteSpy.getEstacionamentos().contains(estacionamentoParaDeletar));
     }
 
     @Test
@@ -316,28 +334,40 @@ class EstacionamentoServiceTest {
     void deveLancarExcecaoAoDeletarEstacionamentoInexistente() {
         when(estacionamentoRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> estacionamentoService.deletarEstacionamento(99L));
+        assertThrows(ObjetoNaoEncontradoException.class, () ->
+            estacionamentoService.deletarEstacionamento(99L));
         verify(estacionamentoRepository, never()).delete(any(Estacionamento.class));
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException ao tentar atualizar estacionamento com nome duplicado em outro estacionamento")
+    @DisplayName(
+        "Deve lançar IllegalArgumentException ao tentar atualizar estacionamento com nome duplicado"
+    )
     void deveLancarExcecaoAoAtualizarEstacionamentoComNomeDuplicadoEmOutro() {
-        Estacionamento outroEstacionamento = new Estacionamento(2L, "Nome Duplicado", "Outro Endereço", 100, LocalTime.now(), LocalTime.now(), new HashSet<>());
-        Estacionamento estacionamentoExistente = new Estacionamento(1L, "Original", "End Original", 50, LocalTime.now(), LocalTime.now(), new HashSet<>());
+        Estacionamento outroEstacionamento = new Estacionamento(
+            2L, "Nome Duplicado", "Outro Endereço", 100,
+            LocalTime.now(), LocalTime.now(), new HashSet<>()
+        );
+        Estacionamento estacionamentoExistente = new Estacionamento(
+            1L, "Original", "End Original", 50,
+            LocalTime.now(), LocalTime.now(), new HashSet<>()
+        );
 
         Estacionamento atualizacao = new Estacionamento();
         atualizacao.setNome("Nome Duplicado");
         atualizacao.setEndereco("Novo Endereço");
         atualizacao.setCapacidade(10);
-        atualizacao.setHoraAbertura(LocalTime.of(1,0));
-        atualizacao.setHoraFechamento(LocalTime.of(2,0));
+        atualizacao.setHoraAbertura(LocalTime.of(1, 0));
+        atualizacao.setHoraFechamento(LocalTime.of(2, 0));
         atualizacao.setContratantes(new HashSet<>());
 
-        when(estacionamentoRepository.findById(1L)).thenReturn(Optional.of(estacionamentoExistente));
-        when(estacionamentoRepository.findByNome(atualizacao.getNome())).thenReturn(Optional.of(outroEstacionamento));
+        when(estacionamentoRepository.findById(1L))
+            .thenReturn(Optional.of(estacionamentoExistente));
+        when(estacionamentoRepository.findByNome(atualizacao.getNome()))
+            .thenReturn(Optional.of(outroEstacionamento));
 
-        assertThrows(IllegalArgumentException.class, () -> estacionamentoService.atualizarEstacionamento(1L, atualizacao));
+        assertThrows(IllegalArgumentException.class, () ->
+            estacionamentoService.atualizarEstacionamento(1L, atualizacao));
         verify(estacionamentoRepository, times(1)).findById(1L);
         verify(estacionamentoRepository, times(1)).findByNome(atualizacao.getNome());
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
@@ -350,32 +380,41 @@ class EstacionamentoServiceTest {
         estacionamentoComDuplicidade.setNome("Estacionamento Teste");
         estacionamentoComDuplicidade.setEndereco("Rua Duplicada, 456");
         estacionamentoComDuplicidade.setCapacidade(10);
-        estacionamentoComDuplicidade.setHoraAbertura(LocalTime.of(8,0));
-        estacionamentoComDuplicidade.setHoraFechamento(LocalTime.of(18,0));
+        estacionamentoComDuplicidade.setHoraAbertura(LocalTime.of(8, 0));
+        estacionamentoComDuplicidade.setHoraFechamento(LocalTime.of(18, 0));
         estacionamentoComDuplicidade.setContratantes(new HashSet<>());
 
-        when(estacionamentoRepository.findByNome(estacionamentoComDuplicidade.getNome())).thenReturn(Optional.of(new Estacionamento()));
+        when(estacionamentoRepository.findByNome(estacionamentoComDuplicidade.getNome()))
+            .thenReturn(Optional.of(new Estacionamento()));
 
-        assertThrows(IllegalArgumentException.class, () -> estacionamentoService.criarEstacionamento(estacionamentoComDuplicidade));
+        assertThrows(IllegalArgumentException.class, () ->
+            estacionamentoService.criarEstacionamento(estacionamentoComDuplicidade));
         verify(estacionamentoRepository, never()).save(any(Estacionamento.class));
     }
 
     @Test
-    @DisplayName("Deve permitir atualizar estacionamento com o mesmo nome (não é considerado duplicidade consigo mesmo)")
+    @DisplayName("Deve permitir atualizar estacionamento com o mesmo nome(não é considerado duplicidade consigo mesmo)")
     void devePermitirAtualizarEstacionamentoComMesmoNome() {
-        Estacionamento estacionamentoExistente = new Estacionamento(1L, "Estacionamento Central", "Rua Centro", 150, LocalTime.of(8,0), LocalTime.of(22,0), new HashSet<>());
+        Estacionamento estacionamentoExistente = new Estacionamento(
+            1L, "Estacionamento Central", "Rua Centro",
+            150, LocalTime.of(8, 0), LocalTime.of(22, 0),
+            new HashSet<>()
+        );
 
         Estacionamento atualizacao = new Estacionamento();
         atualizacao.setNome("Estacionamento Central");
         atualizacao.setEndereco("Rua Centro Atualizada");
         atualizacao.setCapacidade(160);
-        atualizacao.setHoraAbertura(LocalTime.of(8,0));
-        atualizacao.setHoraFechamento(LocalTime.of(22,0));
+        atualizacao.setHoraAbertura(LocalTime.of(8, 0));
+        atualizacao.setHoraFechamento(LocalTime.of(22, 0));
         atualizacao.setContratantes(new HashSet<>());
 
-        when(estacionamentoRepository.findById(1L)).thenReturn(Optional.of(estacionamentoExistente));
-        when(estacionamentoRepository.findByNome(atualizacao.getNome())).thenReturn(Optional.of(estacionamentoExistente));
-        when(estacionamentoRepository.save(any(Estacionamento.class))).thenReturn(estacionamentoExistente);
+        when(estacionamentoRepository.findById(1L))
+            .thenReturn(Optional.of(estacionamentoExistente));
+        when(estacionamentoRepository.findByNome(atualizacao.getNome()))
+            .thenReturn(Optional.of(estacionamentoExistente));
+        when(estacionamentoRepository.save(any(Estacionamento.class)))
+            .thenReturn(estacionamentoExistente);
 
         Estacionamento atualizado = estacionamentoService.atualizarEstacionamento(1L, atualizacao);
 

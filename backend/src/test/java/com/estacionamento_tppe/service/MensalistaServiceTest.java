@@ -93,7 +93,8 @@ class MensalistaServiceTest {
     void deveLancarExcecaoQuandoBuscarMensalistaPorIdInexistente() {
         when(mensalistaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> mensalistaService.buscarMensalistaPorId(99L));
+        assertThrows(ObjetoNaoEncontradoException.class, () -> 
+        mensalistaService.buscarMensalistaPorId(99L));
         verify(mensalistaRepository, times(1)).findById(99L);
     }
 
@@ -138,7 +139,8 @@ class MensalistaServiceTest {
 
         when(mensalistaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> mensalistaService.atualizarMensalista(99L, atualizacaoPayload));
+        assertThrows(ObjetoNaoEncontradoException.class, () -> 
+        mensalistaService.atualizarMensalista(99L, atualizacaoPayload));
         verify(mensalistaRepository, never()).save(any(Mensalista.class));
     }
 
@@ -151,7 +153,8 @@ class MensalistaServiceTest {
 
         when(mensalistaRepository.findById(1L)).thenReturn(Optional.of(mensalistaValido));
 
-        assertThrows(DescricaoEmBrancoException.class, () -> mensalistaService.atualizarMensalista(1L, atualizacaoPayload));
+        assertThrows(DescricaoEmBrancoException.class, () -> 
+        mensalistaService.atualizarMensalista(1L, atualizacaoPayload));
         verify(mensalistaRepository, never()).save(any(Mensalista.class));
     }
 
@@ -164,7 +167,8 @@ class MensalistaServiceTest {
 
         when(mensalistaRepository.findById(1L)).thenReturn(Optional.of(mensalistaValido));
 
-        assertThrows(DescricaoEmBrancoException.class, () -> mensalistaService.atualizarMensalista(1L, atualizacaoPayload));
+        assertThrows(DescricaoEmBrancoException.class, () -> 
+        mensalistaService.atualizarMensalista(1L, atualizacaoPayload));
         verify(mensalistaRepository, never()).save(any(Mensalista.class));
     }
 

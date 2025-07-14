@@ -41,25 +41,29 @@ class DiariaServiceTest {
 
     @BeforeEach
     void setUp() {
-        diariaNoturnaValida = new DiariaNoturna(null, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(5.00), null);
-        diariaValida = new Diaria(1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", diariaNoturnaValida);
-        diariaNoturnaValida.setDiaria(diariaValida);
+        diariaNoturnaValida = new DiariaNoturna(
+            null, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(5.00), null
+        );
+        diariaValida = new Diaria(
+            1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
+        diariaValida.setDiariaNoturna(diariaNoturnaValida);
     }
 
     @Test
     @DisplayName("Deve criar uma diária válida com sucesso")
     void deveCriarDiariaValida() {
+        when(diariaNoturnaRepository.save(any(DiariaNoturna.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
         when(diariaRepository.save(any(Diaria.class))).thenAnswer(invocation -> {
             Diaria d = invocation.getArgument(0);
-            d.setId(1L);
-            if (d.getDiariaNoturna() != null) {
+            d.setId(1L); 
+            if (d.getDiariaNoturna() != null && d.getDiariaNoturna().getId() == null) {
                 d.getDiariaNoturna().setId(d.getId());
-                d.getDiariaNoturna().setDiaria(d);
             }
             return d;
         });
-        when(diariaNoturnaRepository.save(any(DiariaNoturna.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
 
         Diaria salvo = diariaService.criarDiaria(diariaValida);
 
@@ -125,8 +129,12 @@ class DiariaServiceTest {
     @Test
     @DisplayName("Deve atualizar uma diária existente com sucesso")
     void deveAtualizarDiariaExistente() {
-        Diaria diariaExistente = new Diaria(1L, BigDecimal.valueOf(60.00), "DIARIA_NOVA", "Descrição antiga", null);
-        Diaria diariaAtualizada = new Diaria(null, BigDecimal.valueOf(70.00), "DIARIA_ATUALIZADA", "Nova descrição", null);
+        Diaria diariaExistente = new Diaria(
+            1L, BigDecimal.valueOf(60.00), "DIARIA_ANTIGA", "Descrição antiga", null
+        );
+        Diaria diariaAtualizada = new Diaria(
+            null, BigDecimal.valueOf(70.00), "DIARIA_ATUALIZADA", "Nova descrição", null
+        );
 
         when(diariaRepository.findById(1L)).thenReturn(Optional.of(diariaExistente));
         when(diariaRepository.save(any(Diaria.class))).thenReturn(diariaAtualizada);
@@ -144,10 +152,13 @@ class DiariaServiceTest {
     @Test
     @DisplayName("Deve lançar ObjetoNaoEncontradoException ao tentar atualizar diária inexistente")
     void deveLancarExcecaoAoAtualizarDiariaInexistente() {
-        Diaria diariaAtualizada = new Diaria(null, BigDecimal.valueOf(70.00), "DIARIA_ATUALIZADA", "Nova descrição", null);
+        Diaria diariaAtualizada = new Diaria(
+            null, BigDecimal.valueOf(70.00), "DIARIA_ATUALIZADA", "Nova descrição", null
+        );
         when(diariaRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ObjetoNaoEncontradoException.class, () -> diariaService.atualizarDiaria(99L, diariaAtualizada));
+        assertThrows(ObjetoNaoEncontradoException.class, () ->
+            diariaService.atualizarDiaria(99L, diariaAtualizada));
         verify(diariaRepository, never()).save(any(Diaria.class));
     }
 
@@ -157,7 +168,8 @@ class DiariaServiceTest {
         Diaria diariaAtualizada = new Diaria(null, null, "DIARIA_ATUALIZADA", "Nova descrição", null);
         when(diariaRepository.findById(1L)).thenReturn(Optional.of(diariaValida));
 
-        assertThrows(DescricaoEmBrancoException.class, () -> diariaService.atualizarDiaria(1L, diariaAtualizada));
+        assertThrows(DescricaoEmBrancoException.class, () ->
+            diariaService.atualizarDiaria(1L, diariaAtualizada));
         verify(diariaRepository, never()).save(any(Diaria.class));
     }
 
@@ -185,16 +197,33 @@ class DiariaServiceTest {
     @Test
     @DisplayName("Deve adicionar DiariaNoturna a uma Diaria existente sem DiariaNoturna")
     void deveAdicionarDiariaNoturnaAExistente() {
-        Diaria diariaExistenteSemNoturna = new Diaria(1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null);
-        DiariaNoturna novaDiariaNoturna = new DiariaNoturna(null, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(7.50), null);
+        Diaria diariaExistenteSemNoturna = new Diaria(
+            1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
+        DiariaNoturna novaDiariaNoturna = new DiariaNoturna(
+            null, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(7.50), null
+        );
 
-        Diaria diariaAtualizada = new Diaria(null, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", novaDiariaNoturna);
+        Diaria diariaAtualizadaPayload = new Diaria(
+            null, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
+        diariaAtualizadaPayload.setDiariaNoturna(novaDiariaNoturna);
 
-        when(diariaRepository.findById(1L)).thenReturn(Optional.of(diariaExistenteSemNoturna));
-        when(diariaRepository.save(any(Diaria.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(diariaNoturnaRepository.save(any(DiariaNoturna.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Diaria resultado = diariaService.atualizarDiaria(1L, diariaAtualizada);
+        when(diariaRepository.findById(1L))
+            .thenReturn(Optional.of(diariaExistenteSemNoturna));
+        when(diariaRepository.save(any(Diaria.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(diariaNoturnaRepository.save(any(DiariaNoturna.class)))
+            .thenAnswer(invocation -> {
+                DiariaNoturna dn = invocation.getArgument(0);
+                if (dn.getId() == null) {
+                    dn.setId(diariaExistenteSemNoturna.getId());
+                }
+                return dn;
+            });
+
+        Diaria resultado = diariaService.atualizarDiaria(1L, diariaAtualizadaPayload);
 
         assertNotNull(resultado.getDiariaNoturna());
         assertEquals(LocalTime.of(22, 0), resultado.getDiariaNoturna().getHoraInicio());
@@ -208,42 +237,65 @@ class DiariaServiceTest {
     @Test
     @DisplayName("Deve atualizar DiariaNoturna de uma Diaria existente")
     void deveAtualizarDiariaNoturnaDeExistente() {
-        Diaria diariaExistenteComNoturna = new Diaria(1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", diariaNoturnaValida);
-        diariaNoturnaValida.setDiaria(diariaExistenteComNoturna);
+        DiariaNoturna diariaNoturnaExistente = new DiariaNoturna(
+            1L, LocalTime.of(21, 0), LocalTime.of(5, 0), BigDecimal.valueOf(6.00), null
+        );
+        Diaria diariaExistenteComNoturna = new Diaria(
+            1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
+        diariaExistenteComNoturna.setDiariaNoturna(diariaNoturnaExistente);
 
-        DiariaNoturna atualizacaoDiariaNoturna = new DiariaNoturna(null, LocalTime.of(23, 0), LocalTime.of(7, 0), BigDecimal.valueOf(10.00), null);
-        Diaria diariaAtualizada = new Diaria(null, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", atualizacaoDiariaNoturna);
+        DiariaNoturna atualizacaoDiariaNoturna = new DiariaNoturna(
+            null, LocalTime.of(23, 0), LocalTime.of(7, 0), BigDecimal.valueOf(10.00), null
+        );
+        Diaria diariaAtualizadaPayload = new Diaria(
+            null, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
+        diariaAtualizadaPayload.setDiariaNoturna(atualizacaoDiariaNoturna);
 
-        when(diariaRepository.findById(1L)).thenReturn(Optional.of(diariaExistenteComNoturna));
-        when(diariaRepository.save(any(Diaria.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(diariaNoturnaRepository.save(any(DiariaNoturna.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Diaria resultado = diariaService.atualizarDiaria(1L, diariaAtualizada);
+        when(diariaRepository.findById(1L))
+            .thenReturn(Optional.of(diariaExistenteComNoturna));
+        when(diariaRepository.save(any(Diaria.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+        when(diariaNoturnaRepository.save(any(DiariaNoturna.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Diaria resultado = diariaService.atualizarDiaria(1L, diariaAtualizadaPayload);
 
         assertNotNull(resultado.getDiariaNoturna());
         assertEquals(LocalTime.of(23, 0), resultado.getDiariaNoturna().getHoraInicio());
         assertEquals(LocalTime.of(7, 0), resultado.getDiariaNoturna().getHoraFim());
         assertEquals(BigDecimal.valueOf(10.00), resultado.getDiariaNoturna().getAdicionalNoturno());
         verify(diariaRepository, times(1)).save(diariaExistenteComNoturna);
-        verify(diariaNoturnaRepository, times(1)).save(diariaNoturnaValida);
+        verify(diariaNoturnaRepository, times(1)).save(diariaNoturnaExistente);
     }
 
     @Test
     @DisplayName("Deve remover DiariaNoturna de uma Diaria existente")
     void deveRemoverDiariaNoturnaDeExistente() {
-        Diaria diariaExistenteComNoturna = new Diaria(1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", diariaNoturnaValida);
-        diariaNoturnaValida.setDiaria(diariaExistenteComNoturna);
+        DiariaNoturna diariaNoturnaExistente = new DiariaNoturna(
+            1L, LocalTime.of(22, 0), LocalTime.of(6, 0), BigDecimal.valueOf(5.00), null
+        );
+        Diaria diariaExistenteComNoturna = new Diaria(
+            1L, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
+        diariaExistenteComNoturna.setDiariaNoturna(diariaNoturnaExistente);
 
-        Diaria diariaAtualizada = new Diaria(null, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null);
+        Diaria diariaAtualizadaPayload = new Diaria(
+            null, BigDecimal.valueOf(50.00), "DIARIA_COMUM", "Diária normal", null
+        );
 
-        when(diariaRepository.findById(1L)).thenReturn(Optional.of(diariaExistenteComNoturna));
-        when(diariaRepository.save(any(Diaria.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(diariaRepository.findById(1L))
+            .thenReturn(Optional.of(diariaExistenteComNoturna));
+        when(diariaRepository.save(any(Diaria.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
         doNothing().when(diariaNoturnaRepository).delete(any(DiariaNoturna.class));
 
-        Diaria resultado = diariaService.atualizarDiaria(1L, diariaAtualizada);
+        Diaria resultado = diariaService.atualizarDiaria(1L, diariaAtualizadaPayload);
 
         assertNull(resultado.getDiariaNoturna());
         verify(diariaRepository, times(1)).save(diariaExistenteComNoturna);
-        verify(diariaNoturnaRepository, times(1)).delete(diariaNoturnaValida);
+        verify(diariaNoturnaRepository, times(1)).delete(diariaNoturnaExistente);
     }
 }

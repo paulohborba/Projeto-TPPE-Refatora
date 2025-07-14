@@ -33,7 +33,9 @@ public class DiariaNoturnaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DiariaNoturna> atualizarDiariaNoturna(@PathVariable Long id, @RequestBody DiariaNoturna diariaNoturnaAtualizada) {
+    public ResponseEntity<DiariaNoturna> atualizarDiariaNoturna(
+        @PathVariable Long id, @RequestBody DiariaNoturna diariaNoturnaAtualizada
+    ) {
         DiariaNoturna diariaNoturna = diariaNoturnaService.atualizarDiariaNoturna(id, diariaNoturnaAtualizada);
         return new ResponseEntity<>(diariaNoturna, HttpStatus.OK);
     }

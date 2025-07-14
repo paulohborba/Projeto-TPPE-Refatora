@@ -21,7 +21,8 @@ public class EstacionamentoService {
     private final EstacionamentoRepository estacionamentoRepository;
     private final ContratanteRepository contratanteRepository;
 
-    public EstacionamentoService(EstacionamentoRepository estacionamentoRepository, ContratanteRepository contratanteRepository) {
+    public EstacionamentoService(
+        EstacionamentoRepository estacionamentoRepository, ContratanteRepository contratanteRepository) {
         this.estacionamentoRepository = estacionamentoRepository;
         this.contratanteRepository = contratanteRepository;
     }
@@ -47,10 +48,12 @@ public class EstacionamentoService {
             throw new IllegalArgumentException("A hora de fechamento não pode ser anterior à hora de abertura.");
         }
 
-        // Verifica se já existe um estacionamento com o mesmo nome
-        Optional<Estacionamento> estacionamentoExistente = estacionamentoRepository.findByNome(estacionamento.getNome());
+        Optional<Estacionamento> estacionamentoExistente = 
+        estacionamentoRepository.findByNome(estacionamento.getNome());
         if (estacionamentoExistente.isPresent()) {
-            throw new IllegalArgumentException("Já existe um estacionamento com o nome '" + estacionamento.getNome() + "'.");
+            throw new IllegalArgumentException(
+                "Já existe um estacionamento com o nome '" + estacionamento.getNome() + "'."
+            );
         }
 
         Set<Contratante> managedContratantes = new HashSet<>();
@@ -58,24 +61,31 @@ public class EstacionamentoService {
             for (Contratante c : estacionamento.getContratantes()) {
                 if (c.getId() != null) {
                     Contratante contratante = contratanteRepository.findById(c.getId())
-                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + c.getId() + " não encontrado."));
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Contratante com ID " + c.getId() + " não encontrado."
+                            ));
                     managedContratantes.add(contratante);
                 } else {
-                    throw new DescricaoEmBrancoException("ID do contratante não pode ser nulo ao associar a um estacionamento existente.");
+                    throw new DescricaoEmBrancoException(
+                        "ID do contratante não pode ser nulo ao associar a um estacionamento existente."
+                    );
                 }
             }
         }
         estacionamento.setContratantes(managedContratantes);
 
         Estacionamento savedEstacionamento = estacionamentoRepository.save(estacionamento);
-        savedEstacionamento.getContratantes().forEach(contratante -> contratante.getEstacionamentos().add(savedEstacionamento));
+        savedEstacionamento.getContratantes().forEach(contratante -> 
+        contratante.getEstacionamentos().add(savedEstacionamento));
 
         return savedEstacionamento;
     }
 
     public Estacionamento buscarEstacionamentoPorId(Long id) {
         return estacionamentoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + id + " não encontrado."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Estacionamento com ID " + id + " não encontrado."
+                ));
     }
 
     public List<Estacionamento> listarTodosEstacionamentos() {
@@ -85,16 +95,22 @@ public class EstacionamentoService {
     @Transactional
     public Estacionamento atualizarEstacionamento(Long id, Estacionamento estacionamentoAtualizado) {
         Estacionamento estacionamentoExistente = estacionamentoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + id + " não encontrado para atualização."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Estacionamento com ID " + id + " não encontrado para atualização."
+                ));
 
         if (!StringUtils.hasText(estacionamentoAtualizado.getNome())) {
             throw new DescricaoEmBrancoException("O nome do estacionamento não pode estar em branco na atualização.");
         }
         if (!StringUtils.hasText(estacionamentoAtualizado.getEndereco())) {
-            throw new DescricaoEmBrancoException("O endereço do estacionamento não pode estar em branco na atualização.");
+            throw new DescricaoEmBrancoException(
+                "O endereço do estacionamento não pode estar em branco na atualização."
+            );
         }
         if (estacionamentoAtualizado.getCapacidade() == null || estacionamentoAtualizado.getCapacidade() <= 0) {
-            throw new IllegalArgumentException("A capacidade do estacionamento deve ser maior que zero na atualização.");
+            throw new IllegalArgumentException(
+                "A capacidade do estacionamento deve ser maior que zero na atualização."
+            );
         }
         if (estacionamentoAtualizado.getHoraAbertura() == null) {
             throw new DescricaoEmBrancoException("A hora de abertura não pode ser nula na atualização.");
@@ -103,13 +119,17 @@ public class EstacionamentoService {
             throw new DescricaoEmBrancoException("A hora de fechamento não pode ser nula na atualização.");
         }
         if (estacionamentoAtualizado.getHoraFechamento().isBefore(estacionamentoAtualizado.getHoraAbertura())) {
-            throw new IllegalArgumentException("A hora de fechamento não pode ser anterior à hora de abertura na atualização.");
+            throw new IllegalArgumentException(
+                "A hora de fechamento não pode ser anterior à hora de abertura na atualização."
+            );
         }
 
-        // Verifica se o nome atualizado já existe para outro estacionamento (excluindo o próprio)
-        Optional<Estacionamento> estacionamentoComMesmoNome = estacionamentoRepository.findByNome(estacionamentoAtualizado.getNome());
+        Optional<Estacionamento> estacionamentoComMesmoNome = 
+        estacionamentoRepository.findByNome(estacionamentoAtualizado.getNome());
         if (estacionamentoComMesmoNome.isPresent() && !estacionamentoComMesmoNome.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Já existe outro estacionamento com o nome '" + estacionamentoAtualizado.getNome() + "'.");
+            throw new IllegalArgumentException(
+                "Já existe outro estacionamento com o nome '" + estacionamentoAtualizado.getNome() + "'."
+            );
         }
 
         estacionamentoExistente.setNome(estacionamentoAtualizado.getNome());
@@ -123,26 +143,28 @@ public class EstacionamentoService {
             for (Contratante c : estacionamentoAtualizado.getContratantes()) {
                 if (c.getId() != null) {
                     Contratante contratante = contratanteRepository.findById(c.getId())
-                            .orElseThrow(() -> new ObjetoNaoEncontradoException("Contratante com ID " + c.getId() + " não encontrado para associação."));
+                            .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                                "Contratante com ID " + c.getId() + " não encontrado para associação."
+                            ));
                     newManagedContratantes.add(contratante);
                 } else {
-                    throw new DescricaoEmBrancoException("ID do contratante não pode ser nulo ao associar a um estacionamento existente.");
+                    throw new DescricaoEmBrancoException(
+                        "ID do contratante não pode ser nulo ao associar a um estacionamento existente."
+                    );
                 }
             }
         }
 
-        // Remove associações antigas que não estão mais na lista atualizada
         Set<Contratante> contratantesParaRemover = new HashSet<>(estacionamentoExistente.getContratantes());
         contratantesParaRemover.removeAll(newManagedContratantes);
-        contratantesParaRemover.forEach(contratante -> contratante.removeEstacionamento(estacionamentoExistente)); // CORREÇÃO AQUI
+        contratantesParaRemover.forEach(contratante -> contratante.removeEstacionamento(estacionamentoExistente));
 
-        // Adiciona novas associações ou mantém as existentes
         newManagedContratantes.forEach(contratante -> {
             if (!estacionamentoExistente.getContratantes().contains(contratante)) {
-                contratante.addEstacionamento(estacionamentoExistente); // CORREÇÃO AQUI
+                contratante.addEstacionamento(estacionamentoExistente);
             }
         });
-        estacionamentoExistente.setContratantes(newManagedContratantes); // Sincroniza a coleção do estacionamento
+        estacionamentoExistente.setContratantes(newManagedContratantes);
 
         return estacionamentoRepository.save(estacionamentoExistente);
     }
@@ -150,11 +172,12 @@ public class EstacionamentoService {
     @Transactional
     public void deletarEstacionamento(Long id) {
         Estacionamento estacionamento = estacionamentoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Estacionamento com ID " + id + " não encontrado para exclusão."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Estacionamento com ID " + id + " não encontrado para exclusão."
+                ));
 
-        // Desassociar o estacionamento de todos os contratantes antes de deletar
         Set<Contratante> contratantesCopia = new HashSet<>(estacionamento.getContratantes());
-        contratantesCopia.forEach(contratante -> contratante.removeEstacionamento(estacionamento)); // CORREÇÃO AQUI
+        contratantesCopia.forEach(contratante -> contratante.removeEstacionamento(estacionamento));
 
         estacionamentoRepository.delete(estacionamento);
     }

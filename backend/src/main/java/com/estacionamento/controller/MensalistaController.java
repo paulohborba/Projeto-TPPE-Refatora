@@ -39,7 +39,9 @@ public class MensalistaController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Mensalista> atualizarMensalista(@PathVariable Long id, @RequestBody Mensalista mensalistaAtualizado) {
+    public ResponseEntity<Mensalista> atualizarMensalista(
+        @PathVariable Long id, @RequestBody Mensalista mensalistaAtualizado
+    ) {
         Mensalista mensalista = mensalistaService.atualizarMensalista(id, mensalistaAtualizado);
         return new ResponseEntity<>(mensalista, HttpStatus.OK);
     }

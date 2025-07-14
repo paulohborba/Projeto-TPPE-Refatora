@@ -20,12 +20,12 @@ public class Tempo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "duracao")
+    @Column(name = "duracao", nullable = false)
     private LocalTime duracao;
 
     @Column(name = "valor_fracao", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorFracao;
 
-    @Column(name = "desconto", precision = 5, scale = 2)
+    @Column(name = "desconto", precision = 10, scale = 2)
     private BigDecimal desconto;
 }

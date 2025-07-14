@@ -39,7 +39,9 @@ public class EstacionamentoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Estacionamento> atualizarEstacionamento(@PathVariable Long id, @RequestBody Estacionamento estacionamentoAtualizado) {
+    public ResponseEntity<Estacionamento> atualizarEstacionamento(
+        @PathVariable Long id, @RequestBody Estacionamento estacionamentoAtualizado
+    ) {
         Estacionamento estacionamento = estacionamentoService.atualizarEstacionamento(id, estacionamentoAtualizado);
         return new ResponseEntity<>(estacionamento, HttpStatus.OK);
     }

@@ -3,12 +3,16 @@ package com.estacionamento.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 
 @Entity
 @Table(name = "Estacionamento")
@@ -36,21 +40,20 @@ public class Estacionamento {
     @Column(name = "hora_fechamento", nullable = false)
     private LocalTime horaFechamento;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "estacionamento_contratante",
-            joinColumns = @JoinColumn(name = "estacionamento_id"),
-            inverseJoinColumns = @JoinColumn(name = "contratante_id")
-    )
+    @ManyToMany(mappedBy = "estacionamentos", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ToString.Exclude
     private Set<Contratante> contratantes = new HashSet<>();
-
+    
     public void addContratante(Contratante contratante) {
-        this.contratantes.add(contratante);
-        contratante.getEstacionamentos().add(this);
+        if (contratante != null && !this.contratantes.contains(contratante)) {
+            this.contratantes.add(contratante);
+        }
     }
 
     public void removeContratante(Contratante contratante) {
-        this.contratantes.remove(contratante);
-        contratante.getEstacionamentos().remove(this);
+        if (contratante != null && this.contratantes.contains(contratante)) {
+            this.contratantes.remove(contratante);
+        }
     }
 }

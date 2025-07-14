@@ -83,7 +83,8 @@ class VeiculoServiceTest {
     @Test
     @DisplayName("Deve lançar IllegalArgumentException ao tentar criar veículo com placa já existente")
     void deveLancarExcecaoQuandoCriarVeiculoComPlacaExistente() {
-        when(veiculoRepository.findByPlaca(veiculoComPlacaExistente.getPlaca())).thenReturn(Optional.of(new Veiculo())); // Retorna qualquer Optional.of para indicar que existe
+        when(veiculoRepository.findByPlaca(veiculoComPlacaExistente.getPlaca())).thenReturn(
+            Optional.of(new Veiculo()));
 
         assertThrows(IllegalArgumentException.class, () ->
             veiculoService.criarVeiculo(veiculoComPlacaExistente)
@@ -183,7 +184,9 @@ class VeiculoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve lançar IllegalArgumentException ao tentar atualizar veículo com placa já existente em outro veículo")
+    @DisplayName(
+        "Deve lançar IllegalArgumentException ao tentar atualizar veículo com placa já existente em outro veículo"
+    )
     void deveLancarExcecaoAoAtualizarVeiculoComPlacaDuplicada() {
         Veiculo outroVeiculo = new Veiculo();
         outroVeiculo.setId(2L);
@@ -207,7 +210,7 @@ class VeiculoServiceTest {
     }
 
     @Test
-    @DisplayName("Deve permitir atualizar veículo com a mesma placa (ou seja, não conta como duplicidade com ele mesmo)")
+    @DisplayName("Deve permitir atualizar veículo com a mesma placa(ou seja, não conta como duplicidade com ele mesmo)")
     void devePermitirAtualizarVeiculoComMesmaPlaca() {
         Veiculo atualizacao = new Veiculo();
         atualizacao.setPlaca("ABC1234");

@@ -22,9 +22,9 @@ public class Mensalista {
     @Column(name = "valor", nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
 
-    @Column(name = "periodo_meses")
+    @Column(name = "periodo_meses", nullable = false)
     private Integer periodoMeses;
 
-    @Column(name = "descricao", length = 255)
+    @Column(length = 255)
     private String descricao;
 }

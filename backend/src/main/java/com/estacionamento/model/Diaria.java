@@ -1,19 +1,23 @@
+
+
 package com.estacionamento.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.math.BigDecimal;
-
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode; 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @Entity
 @Table(name = "Diaria")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(exclude = "diariaNoturna") 
+@EqualsAndHashCode(exclude = "diariaNoturna")
+@ToString(exclude = "diariaNoturna")
 public class Diaria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,26 +26,51 @@ public class Diaria {
     @Column(name = "valor", nullable = false, precision = 10, scale = 2)
     private BigDecimal valor;
 
-    @Column(name = "tipo", length = 50)
+    @Column(name = "tipo", length = 50, nullable = false, unique = true)
     private String tipo;
 
-    @Column(name = "descricao", length = 255)
+    @Column(length = 255)
     private String descricao;
 
     @OneToOne(mappedBy = "diaria", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JsonManagedReference
     private DiariaNoturna diariaNoturna;
 
-    public void setDiariaNoturna(DiariaNoturna diariaNoturna) {
-        if (diariaNoturna == null) {
-            if (this.diariaNoturna != null) {
-                this.diariaNoturna.setDiaria(null);
-            }
-        } else {
-            diariaNoturna.setDiaria(this);
-        }
-        this.diariaNoturna = diariaNoturna;
+    public Diaria(BigDecimal valor, String tipo, String descricao) {
+        this.valor = valor;
+        this.tipo = tipo;
+        this.descricao = descricao;
     }
 
-    public Diaria(long l, BigDecimal bigDecimal, String string, String string2) {
+    public void setDiariaNoturna(DiariaNoturna diariaNoturna) {
+        if (this.diariaNoturna != null) {
+            this.diariaNoturna.setDiaria(null);
+        }
+
+        this.diariaNoturna = diariaNoturna;
+
+        if (diariaNoturna != null) {
+            diariaNoturna.setDiaria(this);
+        }
+    }
+
+    public void addDiariaNoturna(DiariaNoturna diariaNoturna) {
+        setDiariaNoturna(diariaNoturna);
+    }
+
+    public void removeDiariaNoturna() {
+        setDiariaNoturna(null);
+    }
+
+    public boolean hasNightRate() {
+        return diariaNoturna != null;
+    }
+
+    public BigDecimal getValorTotal() {
+        BigDecimal total = valor;
+        if (hasNightRate() && diariaNoturna.getAdicionalNoturno() != null) {
+            total = total.add(diariaNoturna.getAdicionalNoturno());
+        }
+        return total;
     }
 }

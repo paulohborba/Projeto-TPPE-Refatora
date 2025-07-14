@@ -42,7 +42,9 @@ public class VeiculoService {
 
     public Veiculo atualizarVeiculo(Long id, Veiculo veiculoAtualizado) {
         Veiculo veiculoExistente = veiculoRepository.findById(id)
-                .orElseThrow(() -> new ObjetoNaoEncontradoException("Veículo com ID " + id + " não encontrado para atualização."));
+                .orElseThrow(() -> new ObjetoNaoEncontradoException(
+                    "Veículo com ID " + id + " não encontrado para atualização."
+                ));
 
         if (!StringUtils.hasText(veiculoAtualizado.getPlaca())) {
             throw new DescricaoEmBrancoException("A placa do veículo não pode estar em branco.");
@@ -50,7 +52,9 @@ public class VeiculoService {
 
         Optional<Veiculo> veiculoComMesmaPlaca = veiculoRepository.findByPlaca(veiculoAtualizado.getPlaca());
         if (veiculoComMesmaPlaca.isPresent() && !veiculoComMesmaPlaca.get().getId().equals(id)) {
-            throw new IllegalArgumentException("Já existe outro veículo cadastrado com a placa: " + veiculoAtualizado.getPlaca());
+            throw new IllegalArgumentException(
+                "Já existe outro veículo cadastrado com a placa: " + veiculoAtualizado.getPlaca()
+            );
         }
 
         veiculoExistente.setPlaca(veiculoAtualizado.getPlaca());
