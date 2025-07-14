@@ -27,3 +27,6 @@ curl http://localhost:8080/
     <td align="center"><a href="https://github.com/paulohborba"><img style="border-radius: 50%;" src="https://github.com/paulohborba.png" width="100px;" alt="Imagem de Paulo Borba"/><br /><sub><b>Paulo Borba</b></sub></a></td>
   </tr>
 </center>
+
+### Prototipo:
+https://www.figma.com/design/0Y94kkR7RG95ycIhAqcfvc/Untitled?node-id=24-224&t=HW3xJMsHgh2OCuDe-1
