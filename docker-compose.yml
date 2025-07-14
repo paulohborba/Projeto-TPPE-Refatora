@@ -38,7 +38,22 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     networks:
       - estacionamento_network
-      
+
+  frontend: 
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: estacionamento_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
+    networks:
+      - estacionamento_network
+    environment:
+      VITE_APP_API_URL: http://app:8080/api
+
+
 volumes:
   mysql_data:
 
