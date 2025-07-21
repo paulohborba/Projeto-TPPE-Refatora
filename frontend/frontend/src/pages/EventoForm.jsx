@@ -1,4 +1,3 @@
-// src/pages/EventoForm.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Card from '../components/common/Card';
@@ -13,12 +12,12 @@ function EventoForm({ isEditing = false }) {
     const { id, estacionamentoId, contratanteId } = useParams();
 
     const [evento, setEvento] = useState({
-        id: '', // ID manual
+        id: '',
         nome: '',
         dataInicio: '',
-        horaInicio: '', // Campo temporário para hora
+        horaInicio: '',
         dataFim: '',
-        horaFim: '', // Campo temporário para hora
+        horaFim: '',
         valorDiaria: '',
         qtdVagasContratadas: '',
         contratante: { id: contratanteId || '', nome: '' },
@@ -37,14 +36,12 @@ function EventoForm({ isEditing = false }) {
                         id: String(data.id),
                         valorDiaria: data.valorDiaria ? String(data.valorDiaria) : '',
                         qtdVagasContratadas: data.qtdVagasContratadas ? String(data.qtdVagasContratadas) : '',
-                        // Formatar datas e horas para os campos de input type="date" e type="time"
-                        dataInicio: data.dataInicio ? data.dataInicio.split('T')[0] : '', // "YYYY-MM-DD"
-                        horaInicio: data.dataInicio ? data.dataInicio.split('T')[1]?.substring(0, 5) : '', // "HH:MM"
+                        dataInicio: data.dataInicio ? data.dataInicio.split('T')[0] : '',
+                        horaInicio: data.dataInicio ? data.dataInicio.split('T')[1]?.substring(0, 5) : '',
                         dataFim: data.dataFim ? data.dataFim.split('T')[0] : '',
                         horaFim: data.dataFim ? data.dataFim.split('T')[1]?.substring(0, 5) : '',
                     });
                 } else {
-                    // Se estiver adicionando, tenta carregar o nome do estacionamento/contratante se houver ID na URL
                     if (estacionamentoId) {
                         const estData = await getEstacionamentoById(estacionamentoId);
                         setEvento(prev => ({ ...prev, estacionamento: { id: estacionamentoId, nome: estData.nome } }));
@@ -80,14 +77,12 @@ function EventoForm({ isEditing = false }) {
             id: evento.id ? Number(evento.id) : null,
             valorDiaria: evento.valorDiaria ? parseFloat(evento.valorDiaria) : null,
             qtdVagasContratadas: evento.qtdVagasContratadas ? parseInt(evento.qtdVagasContratadas, 10) : null,
-            // Construir LocalDateTime strings no formato esperado pelo backend (ISO 8601)
             dataInicio: evento.dataInicio && evento.horaInicio ? `${evento.dataInicio}T${evento.horaInicio}:00` : null,
             dataFim: evento.dataFim && evento.horaFim ? `${evento.dataFim}T${evento.horaFim}:00` : null,
             contratante: evento.contratante.id ? { id: Number(evento.contratante.id) } : null,
             estacionamento: evento.estacionamento.id ? { id: Number(evento.estacionamento.id) } : null
         };
 
-        // Remover os campos temporários de data/hora que não são enviados ao backend
         delete dataToSend.horaInicio;
         delete dataToSend.horaFim;
 
@@ -99,13 +94,12 @@ function EventoForm({ isEditing = false }) {
                 await createEvento(dataToSend);
                 alert('Evento cadastrado com sucesso!');
             }
-            // Navega de volta para os detalhes do contratante ou estacionamento, se possível
             if (contratanteId) {
                 navigate(`/contratantes/${contratanteId}`);
             } else if (estacionamentoId) {
                 navigate(`/estacionamentos/${estacionamentoId}`);
             } else {
-                navigate('/'); // Ou para uma lista geral de eventos
+                navigate('/');
             }
         } catch (err) {
             console.error("Erro na operação:", err.response ? err.response.data : err.message);

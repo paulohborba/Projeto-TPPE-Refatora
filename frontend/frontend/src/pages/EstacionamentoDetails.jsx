@@ -4,11 +4,11 @@ import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import ListItemCard from '../components/common/ListItemCard';
 import Modal from '../components/common/Modal';
-import InputGroup from '../components/common/InputGroup'; // Para os campos de detalhes
+import InputGroup from '../components/common/InputGroup';
 import { getEstacionamentoById, deleteEstacionamento } from '../api/estacionamentos';
 
 function EstacionamentoDetails() {
-    const { id } = useParams(); // Pega o ID do estacionamento da URL
+    const { id } = useParams();
     const navigate = useNavigate();
 
     const [estacionamento, setEstacionamento] = useState(null);
@@ -44,7 +44,7 @@ function EstacionamentoDetails() {
         try {
             await deleteEstacionamento(id);
             alert('Estacionamento apagado com sucesso!');
-            navigate('/'); // Volta para o dashboard após apagar
+            navigate('/');
         } catch (err) {
             setError('Erro ao apagar estacionamento: ' + (err.message || 'Erro desconhecido'));
             alert('Erro ao apagar estacionamento.');
@@ -72,7 +72,6 @@ function EstacionamentoDetails() {
     return (
         <>
             <Card title={`Estacionamento ${estacionamento.nome || 'X'}`}>
-                {/* Campos de Detalhes do Estacionamento - Apenas Leitura */}
                 <InputGroup label="ID:" id="id" value={estacionamento.id} readOnly />
                 <InputGroup label="Nome:" id="nome" value={estacionamento.nome} readOnly />
                 <InputGroup label="Endereço:" id="endereco" value={estacionamento.endereco} readOnly />
@@ -92,16 +91,12 @@ function EstacionamentoDetails() {
                 </div>
             </Card>
 
-            {/* Seções de Listas (Veículos, Mensalistas, Contratantes) */}
             <Card title="Lista de Veículos">
-                {/* Aqui você faria uma chamada API para buscar veículos associados a este estacionamento */}
-                {/* E renderizaria com ListItemCard */}
-                {/* Por enquanto, dados de exemplo */}
                 <ListItemCard
                     title="ABC-1234"
                     description="Marca: Fiat, Modelo: Palio"
                     info="Entrada: 10:00"
-                    onEdit={() => navigate(`/veiculos/1/edit`)} // Exemplo de navegação
+                    onEdit={() => navigate(`/veiculos/1/edit`)}
                     onDelete={() => console.log('Apagar veículo 1')}
                 />
                 <ListItemCard
@@ -117,8 +112,6 @@ function EstacionamentoDetails() {
             </Card>
 
             <Card title="Lista de Mensalistas">
-                {/* Chamada API para mensalistas */}
-                {/* Dados de exemplo */}
                 <ListItemCard
                     title="João da Silva"
                     description="Placa: ABC-1234"
@@ -132,8 +125,6 @@ function EstacionamentoDetails() {
             </Card>
 
             <Card title="Lista de Contratantes">
-                {/* Chamada API para contratantes */}
-                {/* Dados de exemplo */}
                 <ListItemCard
                     title="Empresa X S.A."
                     description="CPF/CNPJ: 12.345.678/0001-90"
@@ -146,7 +137,6 @@ function EstacionamentoDetails() {
                 </Button>
             </Card>
 
-            {/* Modal de Confirmação de Exclusão */}
             <Modal
                 show={showDeleteModal}
                 onClose={cancelDelete}

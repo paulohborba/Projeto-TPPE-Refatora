@@ -1,4 +1,3 @@
-// src/pages/ContratanteDetails.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../components/common/Card';
@@ -7,7 +6,6 @@ import InputGroup from '../components/common/InputGroup';
 import ListItemCard from '../components/common/ListItemCard';
 import Modal from '../components/common/Modal';
 import { getContratanteById, deleteContratante } from '../api/contratantes';
-// import { getEventosByContratanteId } from '../api/eventos'; // Para listar eventos do contratante
 
 function ContratanteDetails() {
     const { id } = useParams();
@@ -17,16 +15,12 @@ function ContratanteDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    // const [eventosDoContratante, setEventosDoContratante] = useState([]); // Para listar eventos
 
     useEffect(() => {
         const fetchContratante = async () => {
             try {
                 const data = await getContratanteById(id);
                 setContratante(data);
-                // Exemplo: Se houvesse uma API para buscar eventos de um contratante
-                // const eventosData = await getEventosByContratanteId(id);
-                // setEventosDoContratante(eventosData);
             } catch (err) {
                 setError('Erro ao carregar detalhes do contratante: ' + (err.message || 'Erro desconhecido'));
             } finally {
@@ -50,7 +44,7 @@ function ContratanteDetails() {
         try {
             await deleteContratante(id);
             alert('Contratante apagado com sucesso!');
-            navigate(-1); // Volta para a página anterior (ex: detalhes do estacionamento)
+            navigate(-1);
         } catch (err) {
             setError('Erro ao apagar contratante: ' + (err.message || 'Erro desconhecido'));
             alert('Erro ao apagar contratante.');
@@ -103,8 +97,6 @@ function ContratanteDetails() {
             </Card>
 
             <Card title="Eventos do Contratante">
-                {/* Aqui você listaria os eventos associados a este contratante */}
-                {/* Por enquanto, exemplos */}
                 <ListItemCard
                     title="Conferência Anual Tech"
                     description="De 20/08/2025 a 22/08/2025"
@@ -124,7 +116,6 @@ function ContratanteDetails() {
                 </Button>
             </Card>
 
-            {/* Modal de Confirmação de Exclusão */}
             <Modal
                 show={showDeleteModal}
                 onClose={cancelDelete}

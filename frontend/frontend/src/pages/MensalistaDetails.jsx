@@ -6,8 +6,6 @@ import InputGroup from '../components/common/InputGroup';
 import ListItemCard from '../components/common/ListItemCard';
 import Modal from '../components/common/Modal';
 import { getMensalistaById, deleteMensalista } from '../api/mensalistas';
-// Para listar acessos ou outros dados relacionados ao mensalista, se houver
-// import { getAcessosByMensalistaId } from '../api/acessos'; // Exemplo
 
 function MensalistaDetails() {
     const { id } = useParams();
@@ -17,16 +15,12 @@ function MensalistaDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    // const [acessosDoMensalista, setAcessosDoMensalista] = useState([]); // Para listar acessos
 
     useEffect(() => {
         const fetchMensalista = async () => {
             try {
                 const data = await getMensalistaById(id);
                 setMensalista(data);
-                // Exemplo: Se houvesse uma API para buscar acessos de um mensalista
-                // const acessosData = await getAcessosByMensalistaId(id);
-                // setAcessosDoMensalista(acessosData);
             } catch (err) {
                 setError('Erro ao carregar detalhes do mensalista: ' + (err.message || 'Erro desconhecido'));
             } finally {
@@ -50,7 +44,7 @@ function MensalistaDetails() {
         try {
             await deleteMensalista(id);
             alert('Mensalista apagado com sucesso!');
-            navigate(-1); // Volta para a página anterior (ex: detalhes do estacionamento)
+            navigate(-1);
         } catch (err) {
             setError('Erro ao apagar mensalista: ' + (err.message || 'Erro desconhecido'));
             alert('Erro ao apagar mensalista.');
@@ -100,13 +94,11 @@ function MensalistaDetails() {
             </Card>
 
             <Card title="Acessos do Mensalista">
-                {/* Aqui você listaria os acessos específicos deste mensalista */}
-                {/* Por enquanto, exemplos */}
                 <ListItemCard
                     title="Acesso em 14/07/2025"
                     description="Entrada: 08:00 - Saída: 18:00"
                     info="Placa: ABC1234"
-                    hasActions={false} // Ações de edição/exclusão de acesso estariam na tela de detalhes de Veículo, não aqui.
+                    hasActions={false}
                 />
                  <ListItemCard
                     title="Acesso em 13/07/2025"
@@ -114,13 +106,8 @@ function MensalistaDetails() {
                     info="Placa: ABC1234"
                     hasActions={false}
                 />
-                {/* Se houver um botão para adicionar acesso para este mensalista */}
-                {/* <Button onClick={() => navigate(`/mensalistas/${mensalista.id}/acessos/add`)}>
-                    Registrar Novo Acesso
-                </Button> */}
             </Card>
 
-            {/* Modal de Confirmação de Exclusão */}
             <Modal
                 show={showDeleteModal}
                 onClose={cancelDelete}

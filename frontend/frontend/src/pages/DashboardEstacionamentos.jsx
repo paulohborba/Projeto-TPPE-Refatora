@@ -1,11 +1,10 @@
-// src/pages/DashboardEstacionamentos.jsx
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import ListItemCard from '../components/common/ListItemCard';
-import Modal from '../components/common/Modal'; // Para o modal de exclusão
-import { getAllEstacionamentos, deleteEstacionamento } from '../api/estacionamentos'; // Importar API mockada
+import Modal from '../components/common/Modal';
+import { getAllEstacionamentos, deleteEstacionamento } from '../api/estacionamentos';
 
 function DashboardEstacionamentos() {
     const [estacionamentos, setEstacionamentos] = useState([]);
@@ -20,23 +19,19 @@ function DashboardEstacionamentos() {
         const fetchEstacionamentos = async () => {
             try {
                 const data = await getAllEstacionamentos();
-                console.log('API Response:', data); // Debug log para verificar o que está sendo retornado
-                
-                // Garantir que data é sempre um array
+                console.log('API Response:', data);
+
                 if (Array.isArray(data)) {
                     setEstacionamentos(data);
                 } else if (data && Array.isArray(data.data)) {
-                    // Caso a API retorne { data: [...] }
                     setEstacionamentos(data.data);
                 } else {
-                    // Se não for array, inicializar como array vazio
                     console.warn('API não retornou um array:', data);
                     setEstacionamentos([]);
                 }
             } catch (err) {
                 console.error('Erro ao buscar estacionamentos:', err);
                 setError('Erro ao carregar estacionamentos: ' + (err.message || 'Erro desconhecido'));
-                // Garantir que mesmo em erro, estacionamentos seja um array
                 setEstacionamentos([]);
             } finally {
                 setLoading(false);
@@ -55,7 +50,6 @@ function DashboardEstacionamentos() {
         if (estacionamentoToDelete) {
             try {
                 await deleteEstacionamento(estacionamentoToDelete.id);
-                // Garantir que estacionamentos é array antes de filtrar
                 setEstacionamentos(prevEstacionamentos => 
                     Array.isArray(prevEstacionamentos) 
                         ? prevEstacionamentos.filter(e => e.id !== estacionamentoToDelete.id)
@@ -86,7 +80,6 @@ function DashboardEstacionamentos() {
         return <Card><p style={{ color: 'red' }}>{error}</p></Card>;
     }
 
-    // Verificação extra de segurança antes de renderizar
     const estacionamentosArray = Array.isArray(estacionamentos) ? estacionamentos : [];
 
     return (
@@ -114,7 +107,6 @@ function DashboardEstacionamentos() {
                 )}
             </Card>
 
-            {/* Modal de Confirmação de Exclusão */}
             <Modal
                 show={showDeleteModal}
                 onClose={cancelDelete}

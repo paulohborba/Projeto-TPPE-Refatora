@@ -1,8 +1,7 @@
-// src/pages/NotFoundPage.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Card from '../components/common/Card'; // Reutiliza o Card para um layout agradável
-import Button from '../components/common/Button'; // Reutiliza o Button
+import Card from '../components/common/Card';
+import Button from '../components/common/Button';
 
 function NotFoundPage() {
     return (

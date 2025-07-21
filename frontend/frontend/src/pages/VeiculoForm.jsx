@@ -4,25 +4,25 @@ import Card from '../components/common/Card';
 import InputGroup from '../components/common/InputGroup';
 import Button from '../components/common/Button';
 import { createVeiculo, getVeiculoById, updateVeiculo } from '../api/veiculos';
-import { getEstacionamentoById } from '../api/estacionamentos'; // Para obter o nome do estacionamento
+import { getEstacionamentoById } from '../api/estacionamentos';
 
 function VeiculoForm({ isEditing = false }) {
     const navigate = useNavigate();
-    const { id, estacionamentoId } = useParams(); // Pega ID do veículo e, se houver, estacionamentoId da URL
+    const { id, estacionamentoId } = useParams();
 
     const [veiculo, setVeiculo] = useState({
-        id: '', // ID manual
+        id: '',
         placa: '',
         marca: '',
         modelo: '',
         cor: '',
-        tipoAcesso: '', // Ex: 'HORISTA', 'EVENTO', 'MENSALISTA'
+        tipoAcesso: '',
         horaEntrada: '',
         dataEntrada: '',
         horaSaida: '',
         dataSaida: '',
         valorCobrado: '',
-        estacionamento: { id: estacionamentoId || '', nome: '' } // Associado ao Estacionamento
+        estacionamento: { id: estacionamentoId || '', nome: '' }
     });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -34,16 +34,14 @@ function VeiculoForm({ isEditing = false }) {
                     const data = await getVeiculoById(id);
                     setVeiculo({
                         ...data,
-                        id: String(data.id), // Garante que o ID é string para o input
+                        id: String(data.id),
                         valorCobrado: data.valorCobrado ? String(data.valorCobrado) : '',
-                        // Formatar datas e horas para os campos de input type="date" e type="time"
-                        dataEntrada: data.dataEntrada ? data.dataEntrada.split('T')[0] : '', // "YYYY-MM-DD"
-                        horaEntrada: data.dataEntrada ? data.dataEntrada.split('T')[1]?.substring(0, 5) : '', // "HH:MM"
+                        dataEntrada: data.dataEntrada ? data.dataEntrada.split('T')[0] : '',
+                        horaEntrada: data.dataEntrada ? data.dataEntrada.split('T')[1]?.substring(0, 5) : '',
                         dataSaida: data.dataSaida ? data.dataSaida.split('T')[0] : '',
                         horaSaida: data.dataSaida ? data.dataSaida.split('T')[1]?.substring(0, 5) : '',
                     });
                 } else if (estacionamentoId) {
-                    // Se estamos adicionando e temos um estacionamentoId na URL, busca o nome
                     const estacionamentoData = await getEstacionamentoById(estacionamentoId);
                     setVeiculo(prev => ({
                         ...prev,
@@ -71,20 +69,15 @@ function VeiculoForm({ isEditing = false }) {
         event.preventDefault();
         setError(null);
 
-        // Combina data e hora para os campos de entrada/saída (se existirem)
-        // O backend espera um LocalDateTime ou String no formato ISO 8601
         const dataToSend = {
             ...veiculo,
-            id: veiculo.id ? Number(veiculo.id) : null, // Converte ID para número
+            id: veiculo.id ? Number(veiculo.id) : null,
             valorCobrado: veiculo.valorCobrado ? parseFloat(veiculo.valorCobrado) : null,
-            // Construir LocalDateTime strings no formato esperado pelo backend (ISO 8601)
             dataEntrada: veiculo.dataEntrada && veiculo.horaEntrada ? `${veiculo.dataEntrada}T${veiculo.horaEntrada}:00` : null,
             dataSaida: veiculo.dataSaida && veiculo.horaSaida ? `${veiculo.dataSaida}T${veiculo.horaSaida}:00` : null,
-            // Envia apenas o ID do estacionamento, não o objeto completo, se o backend espera isso
             estacionamento: veiculo.estacionamento.id ? { id: Number(veiculo.estacionamento.id) } : null
         };
 
-        // Remover os campos temporários de data/hora que não são enviados ao backend
         delete dataToSend.horaEntrada;
         delete dataToSend.dataSaida;
         delete dataToSend.horaSaida;
@@ -98,11 +91,10 @@ function VeiculoForm({ isEditing = false }) {
                 await createVeiculo(dataToSend);
                 alert('Veículo registrado com sucesso!');
             }
-            // Navega de volta para os detalhes do estacionamento ou lista de veículos
             if (estacionamentoId) {
                 navigate(`/estacionamentos/${estacionamentoId}`);
             } else {
-                navigate('/'); // Ou para uma lista geral de veículos se houver
+                navigate('/');
             }
         } catch (err) {
             console.error("Erro na operação:", err.response ? err.response.data : err.message);
@@ -128,7 +120,7 @@ function VeiculoForm({ isEditing = false }) {
                     value={veiculo.id}
                     onChange={handleChange}
                     placeholder="Insira o ID do veículo/acesso"
-                    readOnly={isEditing} // ID editável apenas na criação
+                    readOnly={isEditing}
                     required
                 />
                 {veiculo.estacionamento.nome && (
@@ -147,7 +139,7 @@ function VeiculoForm({ isEditing = false }) {
                     value={veiculo.placa}
                     onChange={handleChange}
                     placeholder="Insira a placa do veículo"
-                    maxLength="7" // Placas comuns (Mercosul tem 7, antigas 7)
+                    maxLength="7"
                     required
                 />
                 <InputGroup
@@ -181,7 +173,7 @@ function VeiculoForm({ isEditing = false }) {
                 <InputGroup
                     label="Tipo de Acesso:"
                     id="tipoAcesso"
-                    type="text" // Poderia ser um select com opções HORISTA, MENSALISTA, EVENTO
+                    type="text"
                     value={veiculo.tipoAcesso}
                     onChange={handleChange}
                     placeholder="Ex: HORISTA, MENSALISTA, EVENTO"
@@ -229,11 +221,11 @@ function VeiculoForm({ isEditing = false }) {
                 <InputGroup
                     label="Valor Cobrado:"
                     id="valorCobrado"
-                    type="number" // Tipo number para valores monetários
+                    type="number"
                     value={veiculo.valorCobrado}
                     onChange={handleChange}
                     placeholder="0.00"
-                    step="0.01" // Permite valores decimais
+                    step="0.01"
                     required
                 />
 

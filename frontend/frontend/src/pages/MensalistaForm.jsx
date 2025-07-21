@@ -4,19 +4,19 @@ import Card from '../components/common/Card';
 import InputGroup from '../components/common/InputGroup';
 import Button from '../components/common/Button';
 import { createMensalista, getMensalistaById, updateMensalista } from '../api/mensalistas';
-import { getEstacionamentoById } from '../api/estacionamentos'; // Para obter o nome do estacionamento
+import { getEstacionamentoById } from '../api/estacionamentos';
 
 function MensalistaForm({ isEditing = false }) {
     const navigate = useNavigate();
     const { id, estacionamentoId } = useParams();
 
     const [mensalista, setMensalista] = useState({
-        id: '', // ID manual
+        id: '',
         nome: '',
         cpf: '',
         telefone: '',
         placaVeiculo: '',
-        vencimentoContrato: '', // YYYY-MM-DD
+        vencimentoContrato: '',
         valorMensal: '',
         estacionamento: { id: estacionamentoId || '', nome: '' }
     });
@@ -32,7 +32,7 @@ function MensalistaForm({ isEditing = false }) {
                         ...data,
                         id: String(data.id),
                         valorMensal: data.valorMensal ? String(data.valorMensal) : '',
-                        vencimentoContrato: data.vencimentoContrato ? data.vencimentoContrato.split('T')[0] : '' // Formato YYYY-MM-DD
+                        vencimentoContrato: data.vencimentoContrato ? data.vencimentoContrato.split('T')[0] : ''
                     });
                 } else if (estacionamentoId) {
                     const estacionamentoData = await getEstacionamentoById(estacionamentoId);
@@ -80,7 +80,7 @@ function MensalistaForm({ isEditing = false }) {
             if (estacionamentoId) {
                 navigate(`/estacionamentos/${estacionamentoId}`);
             } else {
-                navigate('/'); // Ou para uma lista geral de mensalistas
+                navigate('/');
             }
         } catch (err) {
             console.error("Erro na operação:", err.response ? err.response.data : err.message);

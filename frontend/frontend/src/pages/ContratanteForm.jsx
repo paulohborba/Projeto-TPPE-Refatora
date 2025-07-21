@@ -4,14 +4,14 @@ import Card from '../components/common/Card';
 import InputGroup from '../components/common/InputGroup';
 import Button from '../components/common/Button';
 import { createContratante, getContratanteById, updateContratante } from '../api/contratantes';
-import { getEstacionamentoById } from '../api/estacionamentos'; // Para obter o nome do estacionamento
+import { getEstacionamentoById } from '../api/estacionamentos';
 
 function ContratanteForm({ isEditing = false }) {
     const navigate = useNavigate();
     const { id, estacionamentoId } = useParams();
 
     const [contratante, setContratante] = useState({
-        id: '', // ID manual
+        id: '',
         nome: '',
         cnpj: '',
         telefone: '',
@@ -77,7 +77,7 @@ function ContratanteForm({ isEditing = false }) {
             if (estacionamentoId) {
                 navigate(`/estacionamentos/${estacionamentoId}`);
             } else {
-                navigate('/'); // Ou para uma lista geral de contratantes
+                navigate('/');
             }
         } catch (err) {
             console.error("Erro na operação:", err.response ? err.response.data : err.message);

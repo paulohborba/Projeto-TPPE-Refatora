@@ -1,4 +1,3 @@
-// src/pages/EventoDetails.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../components/common/Card';
@@ -6,7 +5,6 @@ import Button from '../components/common/Button';
 import InputGroup from '../components/common/InputGroup';
 import Modal from '../components/common/Modal';
 import { getEventoById, deleteEvento } from '../api/eventos';
-// import { getVeiculosByEventoId } from '../api/veiculos'; // Para listar veículos em eventos
 
 function EventoDetails() {
     const { id } = useParams();
@@ -16,16 +14,12 @@ function EventoDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    // const [veiculosNoEvento, setVeiculosNoEvento] = useState([]); // Para listar veículos
 
     useEffect(() => {
         const fetchEvento = async () => {
             try {
                 const data = await getEventoById(id);
                 setEvento(data);
-                // Exemplo: Se houvesse uma API para buscar veículos associados a um evento
-                // const veiculosData = await getVeiculosByEventoId(id);
-                // setVeiculosNoEvento(veiculosData);
             } catch (err) {
                 setError('Erro ao carregar detalhes do evento: ' + (err.message || 'Erro desconhecido'));
             } finally {
@@ -49,7 +43,7 @@ function EventoDetails() {
         try {
             await deleteEvento(id);
             alert('Evento apagado com sucesso!');
-            navigate(-1); // Volta para a página anterior (ex: detalhes do contratante ou estacionamento)
+            navigate(-1);
         } catch (err) {
             setError('Erro ao apagar evento: ' + (err.message || 'Erro desconhecido'));
             alert('Erro ao apagar evento.');
@@ -100,19 +94,6 @@ function EventoDetails() {
                 </div>
             </Card>
 
-            {/* Não temos uma tela específica no Figma para "veículos em um evento"
-                mas se fosse necessário, seria aqui:
-            <Card title="Veículos no Evento">
-                <ListItemCard
-                    title="Placa: ABC-1234"
-                    description="Entrada: 10:00 - Saída: 18:00"
-                    info="Valor cobrado: R$ 50,00"
-                    hasActions={false}
-                />
-            </Card>
-            */}
-
-            {/* Modal de Confirmação de Exclusão */}
             <Modal
                 show={showDeleteModal}
                 onClose={cancelDelete}

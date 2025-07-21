@@ -59,7 +59,6 @@ function EstacionamentoForm({ isEditing = false }) {
         event.preventDefault();
         setError(null);
 
-        // Crie um objeto com os dados base
         let dataToSend = {
             ...estacionamento,
             capacidade: parseInt(estacionamento.capacidade, 10)
@@ -67,20 +66,16 @@ function EstacionamentoForm({ isEditing = false }) {
 
         try {
             if (isEditing) {
-                // No modo de edição, o ID é necessário
                 await updateEstacionamento(dataToSend.id, dataToSend);
                 alert('Estacionamento atualizado com sucesso!');
             } else {
-                // NO MODO DE CRIAÇÃO, REMOVA O ID DO OBJETO A SER ENVIADO
-                // Isso permite que o banco de dados gere um ID automaticamente.
                 const { id, ...newData } = dataToSend;
                 await createEstacionamento(newData);
                 alert('Estacionamento cadastrado com sucesso!');
             }
-            navigate('/'); // Volta para o dashboard de estacionamentos
+            navigate('/');
         } catch (err) {
             console.error("Erro na operação:", err);
-            // Melhora a mensagem de erro para o usuário
             setError('Erro ao salvar estacionamento: ' + (err.response?.data?.message || err.message || 'Erro desconhecido.'));
         }
     };
@@ -96,7 +91,6 @@ function EstacionamentoForm({ isEditing = false }) {
     return (
         <Card title={isEditing ? `Estacionamento ${estacionamento.nome} - Editar` : "Registrar Estacionamento"}>
             <form onSubmit={handleSubmit}>
-                {/* CAMPO ID: Condicionalmente visível e desabilitado */}
                 <InputGroup
                     label="ID:"
                     id="id"
@@ -104,23 +98,10 @@ function EstacionamentoForm({ isEditing = false }) {
                     value={estacionamento.id}
                     onChange={handleChange}
                     placeholder={isEditing ? "ID do estacionamento" : "Gerado automaticamente"}
-                    readOnly={!isEditing} // Somente leitura se NÃO estiver editando
-                    disabled={!isEditing} // Desabilita o input se NÃO estiver editando
-                    style={{ display: isEditing ? 'block' : 'none' }} // Esconde o campo ID se não estiver editando
+                    readOnly={!isEditing}
+                    disabled={!isEditing}
+                    style={{ display: isEditing ? 'block' : 'none' }}
                 />
-                {/* Você pode preferir não esconder, apenas desabilitar, removendo a linha acima 'style' */}
-                {/* Se optar por não esconder, apenas desabilitar, a linha ficaria assim: */}
-                {/* <InputGroup
-                    label="ID:"
-                    id="id"
-                    type="text"
-                    value={estacionamento.id}
-                    onChange={handleChange}
-                    placeholder={isEditing ? "ID do estacionamento" : "Gerado automaticamente"}
-                    readOnly={true} // Sempre somente leitura
-                    disabled={!isEditing} // Desabilita apenas na criação
-                /> */}
-
 
                 <InputGroup
                     label="Nome:"

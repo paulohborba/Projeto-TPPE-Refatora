@@ -43,9 +43,6 @@ function VeiculoDetails() {
         try {
             await deleteVeiculo(id);
             alert('Veículo apagado com sucesso!');
-            // Redireciona para o dashboard ou para a tela de detalhes do estacionamento
-            // (se este veículo pertence a um estacionamento específico e você quer voltar para lá)
-            // Por simplicidade, vou para o dashboard. Ajuste conforme seu fluxo.
             navigate('/');
         } catch (err) {
             setError('Erro ao apagar veículo: ' + (err.message || 'Erro desconhecido'));
@@ -97,7 +94,6 @@ function VeiculoDetails() {
                 </div>
             </Card>
 
-            {/* Modal de Confirmação de Exclusão */}
             <Modal
                 show={showDeleteModal}
                 onClose={cancelDelete}
