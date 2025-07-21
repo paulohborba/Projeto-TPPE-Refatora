@@ -39,20 +39,17 @@ services:
     networks:
       - estacionamento_network
 
-  frontend: 
+  caddy_proxy:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/caddy-proxy/Dockerfile
     container_name: estacionamento_frontend
     ports:
       - "3000:80"
     depends_on:
-      - app
+      - app 
     networks:
       - estacionamento_network
-    environment:
-      VITE_APP_API_URL: http://app:8080/api
-
 
 volumes:
   mysql_data:
